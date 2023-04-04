@@ -1,17 +1,19 @@
 {
 	"name": "ESP-IDF",
 	"build": {
+		"context": ".",
 		"dockerfile": "esp-idf.dockerfile"
 	},
-	// Pre-configure ESP-IDF extension
-	"settings": {
-		"idf.showOnboardingOnInit": false,
-		"idf.toolsPath": "/opt/esp",
-		"idf.espIdfPath": "/opt/esp/idf",
-		"idf.pythonBinPath": "/opt/esp/python_env/idf4.2_py3.6_env/bin/python",
-		"idf.port": "/dev/ttyUSB0",
-		"terminal.integrated.shell.linux": "/bin/bash"
-	},
+	"workspaceFolder": "/workspaces/BProjekt/ESP-WROOM-32",
+	// // Pre-configure ESP-IDF extension
+	// "settings": {
+	// 	"idf.showOnboardingOnInit": false,
+	// 	"idf.toolsPath": "/opt/esp",
+	// 	"idf.espIdfPath": "/opt/esp/idf",
+	// 	"idf.pythonBinPath": "/opt/esp/python_env/idf4.2_py3.6_env/bin/python",
+	// 	"idf.port": "/dev/ttyUSB0",
+	// 	"terminal.integrated.shell.linux": "/bin/bash"
+	// },
 	// Install relevant extensions in the dev container
 	"extensions": [
 		"espressif.esp-idf-extension",
@@ -21,6 +23,6 @@
 	"userEnvProbe": "loginInteractiveShell",
 	// Forward serial device to enable flash & monitor
 	"runArgs": [
-		"--device=/dev/ttyUSB0"
+		"--device=/dev/ttyACM0"
 	]
 }

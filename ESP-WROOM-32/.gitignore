@@ -1,0 +1,11 @@
+build/
+components/
+examples/
+tools/
+docs/
+make/
+
+# ignore install scripts
+install.*
+export.*
+
