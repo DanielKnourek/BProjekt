@@ -98,7 +98,7 @@ DMA_HandleTypeDef hdma_usart6_tx;
 SDRAM_HandleTypeDef hsdram1;
 
 /* USER CODE BEGIN PV */
-#define DEBUG true
+#define DEBUG_user true
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -214,7 +214,12 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   /* INITIALIZE GLOBAL VARIABLES BEGIN */
-  init_flags(&Flags);
+//  init_flags(&Flags);
+//  Flags = (flag_set) {0};
+  flag_set *flgs = malloc(sizeof(flag_set));
+  init_flags(flgs);
+
+
   /* INITIALIZE GLOBAL VARIABLES END */
 
 //  HAL_UART_Receive_DMA(&huart6, pData, Size);
