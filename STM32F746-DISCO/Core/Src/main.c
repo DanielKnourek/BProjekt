@@ -23,7 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "flag_tools.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -134,6 +134,15 @@ void MX_USB_HOST_Process(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+flag_set Flags;
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if(GPIO_Pin == BTN1_Pin){
+	}
+	__NOP();
+
+}
 //void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 //{
 //  /* Prevent unused argument(s) compilation warning */
@@ -203,6 +212,10 @@ int main(void)
   MX_ADC3_Init();
   MX_USB_HOST_Init();
   /* USER CODE BEGIN 2 */
+
+  /* INITIALIZE GLOBAL VARIABLES BEGIN */
+  init_flags(&Flags);
+  /* INITIALIZE GLOBAL VARIABLES END */
 
 //  HAL_UART_Receive_DMA(&huart6, pData, Size);
 //  HAL_UART_Transmit_DMA(&huart6, pData, Size);
