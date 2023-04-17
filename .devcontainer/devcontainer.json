@@ -4,25 +4,36 @@
 		"context": ".",
 		"dockerfile": "esp-idf.dockerfile"
 	},
-	"workspaceFolder": "/workspaces/BProjekt/ESP-WROOM-32",
+	"workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/devcontainer,type=bind",
+	"workspaceFolder": "/workspaces/devcontainer/ESP-WROOM-32",
 	// Pre-configure ESP-IDF extension
-	"settings": {
-		"idf.showOnboardingOnInit": false,
-		"idf.toolsPath": "/opt/esp",
-		"idf.espIdfPath": "/opt/esp/idf",
-		"idf.pythonBinPath": "/opt/esp/python_env/idf4.2_py3.6_env/bin/python",
-		"idf.port": "/dev/ttyACM0",
-		"terminal.integrated.shell.linux": "/bin/bash"
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"espressif.esp-idf-extension",
+				"ms-vscode.cmake-tools",
+				"ms-vscode.cpptools"
+			],
+			"settings": {
+				"idf.showOnboardingOnInit": false,
+				"idf.toolsPath": "/opt/esp",
+				"idf.espIdfPath": "/opt/esp/idf",
+				"idf.pythonBinPath": "/opt/esp/python_env/idf4.2_py3.6_env/bin/python",
+				"idf.port": "/dev/ttyACM0",
+				"terminal.integrated.shell.linux": "/bin/bash",
+				"cmake.sourceDirectory": "${workspaceFolder}/ESP-WROOM-32"
+			},
+		}
 	},
+	// "initializeCommand": ".devcontainer/checkAndClearUSB.sh",
 	// Install relevant extensions in the dev container
-	"extensions": [
-		"espressif.esp-idf-extension",
-		"ms-vscode.cmake-tools",
-		"ms-vscode.cpptools"
-	],
 	"userEnvProbe": "loginInteractiveShell",
 	// Forward serial device to enable flash & monitor
 	"runArgs": [
-		"--device=/dev/ttyACM0"
-	]
+		// "--device=/dev/ttyACM0",
+		"--privileged"
+	],
+	"mounts": [
+		"source=/dev/ttyACM0,target=/dev/ttyACM0,type=bind"
+	],
 }
