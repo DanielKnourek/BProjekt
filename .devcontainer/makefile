@@ -1,9 +1,11 @@
 DEVICEPATH=/dev/ttyACM0
+USBIP_BUSID=1-3
+USBIP_WSL_DISTRO=Arch
 
 .PHONY: tryUnmount
 tryUnmount:
 	echo "trying to unmount"
-	/mnt/c/Program\ Files/usbipd-win/usbipd.exe wsl detach --busid 1-3
+	/mnt/c/Program\ Files/usbipd-win/usbipd.exe wsl detach --busid $(USBIP_BUSID)
 
 .PHONY: printSearchResults
 printSearchResults:
@@ -22,7 +24,7 @@ check: printSearchResults
 	else \
 		if [ ! '$(RUNFLAG)' == true ]; then \
 			echo "USB device not found... trying to mount predefinded port"; \
-			/mnt/c/Program\ Files/usbipd-win/usbipd.exe wsl attach --busid 1-3 -d Arch; \
+			/mnt/c/Program\ Files/usbipd-win/usbipd.exe wsl attach --busid $(USBIP_BUSID) -d $(USBIP_WSL_DISTRO); \
 			RUNFLAG=true $(MAKE) check; \
 		else \
 			echo "cannot be completed"; \
