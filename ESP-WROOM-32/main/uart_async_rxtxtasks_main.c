@@ -40,6 +40,7 @@ void init(void)
     gpio_set_direction(LD_BLUE, GPIO_MODE_OUTPUT);
     gpio_pad_select_gpio(BTN0);
     gpio_set_direction(BTN0, GPIO_MODE_INPUT);
+    
 }
 
 int sendData(const char *logName, const char *data)

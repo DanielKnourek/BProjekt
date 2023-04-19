@@ -21,7 +21,7 @@
 				"idf.espIdfPath": "/opt/esp/idf",
 				"idf.pythonBinPath": "/opt/esp/python_env/idf4.2_py3.6_env/bin/python",
 				"idf.port": "/dev/ttyACM0",
-				"terminal.integrated.shell.linux": "/bin/bash",
+				// "terminal.integrated.shell.linux": "/bin/bash",
 				"cmake.sourceDirectory": "${workspaceFolder}/ESP-WROOM-32"
 			},
 		}
@@ -34,7 +34,7 @@
 		"--privileged"
 	],
 
-	"initializeCommand": "make -C .devcontainer/ tryMount &",
+	"initializeCommand": ["make", "-C",  ".devcontainer/",  "tryMount"],
 	
 	// "mounts": [
 	// 	"source=/dev/ttyACM0,target=/dev/ttyACM0,type=bind"
