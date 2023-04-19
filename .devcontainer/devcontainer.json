@@ -12,7 +12,8 @@
 			"extensions": [
 				"espressif.esp-idf-extension",
 				"ms-vscode.cmake-tools",
-				"ms-vscode.cpptools"
+				"ms-vscode.cpptools",
+				"ms-vscode.makefile-tools",
 			],
 			"settings": {
 				"idf.showOnboardingOnInit": false,
@@ -25,15 +26,17 @@
 			},
 		}
 	},
-	// "initializeCommand": ".devcontainer/checkAndClearUSB.sh",
 	// Install relevant extensions in the dev container
 	"userEnvProbe": "loginInteractiveShell",
 	// Forward serial device to enable flash & monitor
 	"runArgs": [
-		// "--device=/dev/ttyACM0",
+		"--device=/dev/ttyACM0",
 		"--privileged"
 	],
-	"mounts": [
-		"source=/dev/ttyACM0,target=/dev/ttyACM0,type=bind"
-	],
+
+	"initializeCommand": "make -C .devcontainer/ fix",
+	
+	// "mounts": [
+	// 	"source=/dev/ttyACM0,target=/dev/ttyACM0,type=bind"
+	// ],
 }
