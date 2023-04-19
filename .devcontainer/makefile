@@ -8,6 +8,12 @@ tryUnmount:
 	echo "trying to unmount"
 	/mnt/c/Program\ Files/usbipd-win/usbipd.exe wsl detach --busid $(USBIP_BUSID)
 
+.PHONY: tryMount
+tryMount: fix
+
+.PHONY: remount
+remount: tryUnmount tryMount
+
 .PHONY: printSearchResults
 printSearchResults:
 	@echo "searching for usbipd device"
@@ -31,11 +37,12 @@ RULE_ISCHAR:
 	@if [ '$(CHECK_ISCHAR)' == true ]; then \
 		echo "USB device found as character"; \
 		echo "everything looks fine"; \
+		exit 0; \
 	fi
 
 .PHONY: RULE_NO_DEVICE
 RULE_NO_DEVICE: RULE_ISDIR RULE_ISCHAR
-	@if [ '$(CHECK_NO_DEVICE)' == inprogress ]; then \
+	@if [ '$(CHECK_NO_DEVICE)' == inprogress ] && [ '$(CHECK_ISCHAR)' == true ]; then \
 		echo "[RULE_NO_DEVICE] cannot be completed "; \
 		exit 1; \
 	else \
