@@ -15,8 +15,11 @@ printSearchResults:
 
 .PHONY: RULE_ISDIR
 RULE_ISDIR:
-	$(eval CHECK_ISDIR := $(shell [ -d '$(DEVICEPATH)' ] && echo true || echo false))
-	@if [ '$(CHECK_ISDIR)' == true ]; then \
+	@if [ '$(CHECK_ISDIR)' == inprogress ]; then \
+		echo "[RULE_ISDIR] cannot be completed"; \
+		exit 1; \
+	else \
+		$(eval CHECK_ISDIR := $(or $(CHECK_ISDIR), $(shell [ -d '$(DEVICEPATH)' ] && echo true || echo false))) \
 		echo "USB device found as direcotry"; \
 	fi
 
@@ -31,10 +34,10 @@ RULE_ISCHAR:
 .PHONY: RULE_NO_DEVICE
 RULE_NO_DEVICE: RULE_ISDIR RULE_ISCHAR
 	@if [ '$(CHECK_NO_DEVICE)' == inprogress ]; then \
-		echo "cannot be completed"; \
-	fi
-	$(eval CHECK_NO_DEVICE := $(shell [ $(CHECK_ISDIR) == false ] || [ $(CHECK_ISCHAR) == false ] && echo true || echo false))
-	@if [ '$(CHECK_NO_DEVICE)' == true ]; then \
+		echo "[RULE_NO_DEVICE] cannot be completed "; \
+		exit 1; \
+	else \
+		$(eval CHECK_NO_DEVICE := $(shell ( [ $(CHECK_ISDIR) == false ] && [ $(CHECK_ISDIR) == inprogress ] ) && [ $(CHECK_ISCHAR) == false ] && echo true || echo false)) \
 		echo "USB device not found"; \
 	fi
 
@@ -43,6 +46,12 @@ check: printSearchResults RULE_ISDIR RULE_ISCHAR RULE_NO_DEVICE
 
 .PHONY: fix
 fix: check
+	@if [ '$(CHECK_ISDIR)' == true ]; then \
+		echo "trying to remove bad mount"; \
+		rm -rf $(DEVICEPATH) && echo "USB device removed" \
+			|| echo "###### run as root to fix ######"; \
+		CHECK_ISDIR=inprogress $(MAKE) fix; \
+	fi
 	@if [ '$(CHECK_NO_DEVICE)' == true ]; then \
 		echo "trying to mount predefinded port....."; \
 		/mnt/c/Program\ Files/usbipd-win/usbipd.exe wsl attach --busid $(USBIP_BUSID) -d $(USBIP_WSL_DISTRO); \
