@@ -15,12 +15,14 @@ printSearchResults:
 
 .PHONY: RULE_ISDIR
 RULE_ISDIR:
-	@if [ '$(CHECK_ISDIR)' == inprogress ]; then \
-		echo "[RULE_ISDIR] cannot be completed"; \
-		exit 1; \
-	else \
-		$(eval CHECK_ISDIR := $(or $(CHECK_ISDIR), $(shell [ -d '$(DEVICEPATH)' ] && echo true || echo false))) \
-		echo "USB device found as direcotry"; \
+	$(eval CHECK_ISDIR_PREV := $(CHECK_ISDIR))
+	$(eval CHECK_ISDIR := $(shell [ -d '$(DEVICEPATH)' ] && echo true || echo false))
+	@if [ '$(CHECK_ISDIR)' == true ]; then \
+		echo "USB device found as directory"; \
+		if [ '$(CHECK_ISDIR_PREV)' == inprogress ]; then \
+			echo "[RULE_ISDIR] cannot be completed"; \
+			exit 1; \
+		fi; \
 	fi
 
 .PHONY: RULE_ISCHAR
@@ -37,7 +39,7 @@ RULE_NO_DEVICE: RULE_ISDIR RULE_ISCHAR
 		echo "[RULE_NO_DEVICE] cannot be completed "; \
 		exit 1; \
 	else \
-		$(eval CHECK_NO_DEVICE := $(shell ( [ $(CHECK_ISDIR) == false ] && [ $(CHECK_ISDIR) == inprogress ] ) && [ $(CHECK_ISCHAR) == false ] && echo true || echo false)) \
+		$(eval CHECK_NO_DEVICE := $(shell ( [ $(CHECK_ISDIR) == false ] || [ $(CHECK_ISDIR) == inprogress ] ) && [ $(CHECK_ISCHAR) == false ] && echo true || echo false)) \
 		echo "USB device not found"; \
 	fi
 
@@ -49,6 +51,7 @@ fix: check
 	@if [ '$(CHECK_ISDIR)' == true ]; then \
 		echo "trying to remove bad mount"; \
 		rm -rf $(DEVICEPATH) && echo "USB device removed" \
+			|| echo "trying to remove as root" && sudo rm -rf $(DEVICEPATH) && echo "USB device removed as ROOT" \
 			|| echo "###### run as root to fix ######"; \
 		CHECK_ISDIR=inprogress $(MAKE) fix; \
 	fi
