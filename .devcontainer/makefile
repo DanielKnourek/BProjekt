@@ -47,6 +47,9 @@ RULE_NO_DEVICE: RULE_ISDIR RULE_ISCHAR
 		exit 1; \
 	else \
 		$(eval CHECK_NO_DEVICE := $(shell ( [ $(CHECK_ISDIR) == false ] || [ $(CHECK_ISDIR) == inprogress ] ) && [ $(CHECK_ISCHAR) == false ] && echo true || echo false)) \
+		if [ '$(CHECK_NO_DEVICE)' == true ]; then \
+			echo "USB device not found"; \
+		fi; \
 	fi
 
 .PHONY: check
