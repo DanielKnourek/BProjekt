@@ -197,6 +197,7 @@ void Error_Handler(void);
 #define RCC_OSC32_OUT_GPIO_Port GPIOC
 #define BTN1_Pin GPIO_PIN_11
 #define BTN1_GPIO_Port GPIOI
+#define BTN1_EXTI_IRQn EXTI15_10_IRQn
 #define LCD_G6_Pin GPIO_PIN_1
 #define LCD_G6_GPIO_Port GPIOK
 #define LCD_G7_Pin GPIO_PIN_2

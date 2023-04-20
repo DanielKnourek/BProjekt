@@ -23,7 +23,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdlib.h>
 #include "flag_tools.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -136,17 +138,31 @@ void MX_USB_HOST_Process(void);
 /* USER CODE BEGIN 0 */
 flag_set Flags;
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-	if(GPIO_Pin == BTN1_Pin){
+#define FT_BTN1 FT_Flag0
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+	if (GPIO_Pin == BTN1_Pin) {
+		set_flag(&Flags, FT_BTN1);
+		return;
 	}
 	__NOP();
 
 }
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  /* Prevent unused argument(s) compilation warning */
+	if(huart == &huart6){
+		set_flag(&Flags, FT_Flag1);
+	}
+
+  /* NOTE : This function should not be modified, when the callback is needed,
+            the HAL_UART_RxCpltCallback can be implemented in the user file.
+   */
+}
 //void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 //{
 //  /* Prevent unused argument(s) compilation warning */
-//  UNUSED(huart);
+//  set_flag(&Flags, FT_Flag1);
 //
 //  /* NOTE : This function should not be modified, when the callback is needed,
 //            the HAL_UART_TxCpltCallback can be implemented in the user file.
@@ -213,22 +229,27 @@ int main(void)
   MX_USB_HOST_Init();
   /* USER CODE BEGIN 2 */
 
-  /* INITIALIZE GLOBAL VARIABLES BEGIN */
-//  init_flags(&Flags);
+	/* INITIALIZE GLOBAL VARIABLES BEGIN */
+	init_flags(&Flags);
+
 //  Flags = (flag_set) {0};
-  flag_set *flgs = malloc(sizeof(flag_set));
-  init_flags(flgs);
 
+//  init_flags(flgs);
 
-  /* INITIALIZE GLOBAL VARIABLES END */
+	/* INITIALIZE GLOBAL VARIABLES END */
 
 //  HAL_UART_Receive_DMA(&huart6, pData, Size);
 //  HAL_UART_Transmit_DMA(&huart6, pData, Size);
 	uint32_t lastTick = 0;
 	uint8_t state = 0;
 	uint32_t currentTick = 0;
-	GPIO_PinState lastStateBTN1 = GPIO_PIN_RESET;
-	GPIO_PinState currentStateBTN1 = GPIO_PIN_RESET;
+//	GPIO_PinState lastStateBTN1 = GPIO_PIN_RESET;
+//	GPIO_PinState currentStateBTN1 = GPIO_PIN_RESET;
+
+	char rx[10];
+	char tx[10];
+	HAL_UART_Receive_DMA(&huart6, rx, sizeof(rx));
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -239,27 +260,51 @@ int main(void)
     MX_USB_HOST_Process();
 
     /* USER CODE BEGIN 3 */
+    	if(is_set(&Flags, FT_Flag1)){
+    		reset_flag(&Flags, FT_Flag1);
+    		memcpy(tx, rx, sizeof(tx));
+    		HAL_UART_Receive_DMA(&huart6, rx, sizeof(rx));
+
+    		__NOP();
+
+    		HAL_UART_Transmit_DMA(&huart6, tx, sizeof(tx));
+    	}
+
 		if ((currentTick - lastTick) >= 500) {
 			lastTick = currentTick;
 
-			currentStateBTN1 = HAL_GPIO_ReadPin(BTN1_GPIO_Port, BTN1_Pin);
-			if (currentStateBTN1 == lastStateBTN1){
-				continue;
+			if (is_set(&Flags, FT_BTN1)) {
+				reset_flag(&Flags, FT_BTN1);
+				if(is_set(&Flags, FT_Flag7)){
+					reset_flag(&Flags, FT_Flag7);
+				}
+				else{
+					set_flag(&Flags, FT_Flag7);
+				}
 			}
-			lastStateBTN1=currentStateBTN1;
 
-			switch ((int) state) {
-			case 1:
-				state = 0;
-				HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
+			if (is_set(&Flags, FT_Flag7)) {
+				if(!is_set(&Flags, FT_Flag6)){ // First write to USART after BTN1
+					set_flag(&Flags, FT_Flag6);
+					const char *msg = "Hello wrd";
+					memset(tx, 0, sizeof(tx));
+		    		memcpy(tx, msg, sizeof(tx));
 
-				break;
-			case 0:
-			default:
-				state = 1;
+		    		HAL_UART_Transmit_DMA(&huart6, tx, sizeof(tx));
+				}
+				switch ((int) state) {
+				case 1:
+					state = 0;
+					HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
 
-				HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
-				break;
+					break;
+				case 0:
+				default:
+					state = 1;
+
+					HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
+					break;
+				}
 			}
 		}
 
@@ -1411,6 +1456,8 @@ static void MX_FMC_Init(void)
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
+/* USER CODE BEGIN MX_GPIO_Init_1 */
+/* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOE_CLK_ENABLE();
@@ -1549,14 +1596,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
   HAL_GPIO_Init(VCP_TX_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : BTN1_Pin */
-  GPIO_InitStruct.Pin = BTN1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(BTN1_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PI13 */
-  GPIO_InitStruct.Pin = GPIO_PIN_13;
+  /*Configure GPIO pins : BTN1_Pin PI13 */
+  GPIO_InitStruct.Pin = BTN1_Pin|GPIO_PIN_13;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
@@ -1606,6 +1647,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
+/* USER CODE BEGIN MX_GPIO_Init_2 */
+/* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
