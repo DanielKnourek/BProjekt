@@ -21,7 +21,8 @@ static const int RX_BUF_SIZE = 1024;
 #define LD_BLUE (2)
 #define BTN0 (0)
 
-uint8_t ld_enabled = 1;
+uint8_t ld_enabled = 0;
+uint8_t btn_pressed = 0;
 void init(void)
 {
     const uart_config_t uart_config = {
@@ -40,7 +41,6 @@ void init(void)
     gpio_set_direction(LD_BLUE, GPIO_MODE_OUTPUT);
     gpio_pad_select_gpio(BTN0);
     gpio_set_direction(BTN0, GPIO_MODE_INPUT);
-    
 }
 
 int sendData(const char *logName, const char *data)
@@ -55,21 +55,20 @@ static void tx_task(void *arg)
 {
     static const char *TX_TASK_TAG = "TX_TASK";
     esp_log_level_set(TX_TASK_TAG, ESP_LOG_INFO);
+
+    static const char *TurnOnMessage = "Y";
+    static const char *TurnOffMessage = "N";
     while (1)
     {
-        sendData(TX_TASK_TAG, "Hello ESP");
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
-
-        // if (ld_enabled > 0)
-        // {
-        //     ld_enabled = 0;
-        //     gpio_set_level(LD_BLUE, 1);
-        // }
-        // else
-        // {
-        //     ld_enabled = 0;
-        //     gpio_set_level(LD_BLUE, 0);
-        // }
+        if (btn_pressed > 0)
+        {
+            sendData(TX_TASK_TAG, TurnOnMessage);
+        }
+        else
+        {
+            sendData(TX_TASK_TAG, TurnOffMessage);
+        }
+        vTaskDelay(200 / portTICK_PERIOD_MS);
     }
 }
 
@@ -80,12 +79,22 @@ static void rx_task(void *arg)
     uint8_t *data = (uint8_t *)malloc(RX_BUF_SIZE + 1);
     while (1)
     {
+        memset(data, 'G', sizeof(RX_BUF_SIZE * sizeof(data[0])));
         const int rxBytes = uart_read_bytes(UART_NUM_1, data, RX_BUF_SIZE, 1000 / portTICK_RATE_MS);
         if (rxBytes > 0)
         {
             data[rxBytes] = 0;
             ESP_LOGI(RX_TASK_TAG, "Read %d bytes: '%s'", rxBytes, data);
             ESP_LOG_BUFFER_HEXDUMP(RX_TASK_TAG, data, rxBytes, ESP_LOG_INFO);
+
+            if (data[0] == 'Y')
+            {
+                ld_enabled = 1;
+            }
+            if (data[0] == 'N')
+            {
+                ld_enabled = 0;
+            }
         }
     }
     free(data);
@@ -99,14 +108,34 @@ static void btn_task(void *arg)
     while (true)
     {
         /* code */
-        vTaskDelay(250 / portTICK_PERIOD_MS);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
         if (gpio_get_level(BTN0) > 0)
         {
-            gpio_set_level(LD_BLUE, 0);
+            btn_pressed = 1;
         }
         else
         {
+            btn_pressed = 0;
+        }
+    }
+}
+
+static void ld_task(void *arg)
+{
+    static const char *RX_TASK_TAG = "LD_TASK";
+    esp_log_level_set(RX_TASK_TAG, ESP_LOG_INFO);
+
+    while (true)
+    {
+        /* code */
+        vTaskDelay(10 / portTICK_PERIOD_MS);
+        if (ld_enabled > 0)
+        {
             gpio_set_level(LD_BLUE, 1);
+        }
+        else
+        {
+            gpio_set_level(LD_BLUE, 0);
         }
     }
 }
@@ -117,4 +146,5 @@ void app_main(void)
     xTaskCreate(rx_task, "uart_rx_task", 1024 * 2, NULL, configMAX_PRIORITIES, NULL);
     xTaskCreate(tx_task, "uart_tx_task", 1024 * 2, NULL, configMAX_PRIORITIES - 1, NULL);
     xTaskCreate(btn_task, "uart_tx_task", 1024 * 2, NULL, configMAX_PRIORITIES - 2, NULL);
+    xTaskCreate(ld_task, "uart_tx_task", 1024 * 2, NULL, configMAX_PRIORITIES - 3, NULL);
 }

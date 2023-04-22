@@ -34,7 +34,7 @@
 		"--privileged"
 	],
 
-	"initializeCommand": ["make", "-C",  ".devcontainer/",  "tryMount"],
+	"initializeCommand": ["make", "-C",  ".devcontainer/",  "tryMount"]
 	
 	// "mounts": [
 	// 	"source=/dev/ttyACM0,target=/dev/ttyACM0,type=bind"
