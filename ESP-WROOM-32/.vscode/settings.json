@@ -15,5 +15,9 @@
     "idf.toolsPath": "/opt/esp",
     "cmake.sourceDirectory": "${workspaceFolder}/.",
     "git.openRepositoryInParentFolders": "always",
-    "idf.flashType": "UART"
+    "idf.flashType": "UART",
+    "files.associations": {
+        "docker-compose.*.yml": "dockercompose",
+        "esp_spiffs.h": "c"
+    }
 }
