@@ -1,43 +1,107 @@
-# Simple HTTP File Server Example
+# WiFi station example
 
 (See the README.md file in the upper level 'examples' directory for more information about examples.)
 
-HTTP file server example demonstrates file serving with both upload and download capability, using the `esp_http_server` component of ESP-IDF. The following URIs are provided by the server:
 
-| URI                  | Method  | Description                                                                               |
-|----------------------|---------|-------------------------------------------------------------------------------------------|
-|`index.html`          | GET     | Redirects to `/`                                                                          |
-|`favicon.ico`         | GET     | Browsers use this path to retrieve page icon which is embedded in flash                   |
-|`/`                   | GET     | Responds with webpage displaying list of files on SPIFFS and form for uploading new files |
-|`/<file path>`        | GET     | For downloading files stored on SPIFFS                                                    |
-|`/upload/<file path>` | POST    | For uploading files on to SPIFFS. Files are sent as body of HTTP post requests            |
-|`/delete/<file path>` | POST    | Command for deleting a file from SPIFFS                                                   |
+## How to use example
 
-File server implementation can be found under `main/file_server.c` which uses SPIFFS for file storage. `main/upload_script.html` has some HTML, JavaScript and Ajax content used for file uploading, which is embedded in the flash image and used as it is when generating the home page of the file server.
+### Configure the project
 
-## Note
+```
+idf.py menuconfig
+```
 
-`/index.html` and `/favicon.ico` can be overridden by uploading files with same pathname to SPIFFS.
+* Set WiFi SSID and WiFi Password and Maximum retry under Example Configuration Options.
 
-## Usage
+### Build and Flash
 
-* Open the project configuration menu (`idf.py menuconfig`) go to `Example Configuration` ->
-    1. WIFI SSID: WIFI network to which your PC is also connected to.
-    2. WIFI Password: WIFI password
+Build the project and flash it to the board, then run monitor tool to view serial output:
 
-* In order to test the file server demo :
-    1. compile and burn the firmware `idf.py -p PORT flash`
-    2. run `idf.py -p PORT monitor` and note down the IP assigned to your ESP module. The default port is 80
-    3. test the example interactively on a web browser (assuming IP is 192.168.43.130):
-        1. open path `http://192.168.43.130/` or `http://192.168.43.130/index.html` to see an HTML web page with list of files on the server (initially empty)
-        2. use the file upload form on the webpage to select and upload a file to the server
-        3. click a file link to download / open the file on browser (if supported)
-        4. click the delete link visible next to each file entry to delete them
-    4. test the example using curl (assuming IP is 192.168.43.130):
-        1. `myfile.html` is uploaded to `/path/on/device/myfile_copy.html` using `curl -X POST --data-binary @myfile.html 192.168.43.130:80/upload/path/on/device/myfile_copy.html`
-        2. download the uploaded copy back : `curl 192.168.43.130:80/path/on/device/myfile_copy.html > myfile_copy.html`
-        3. compare the copy with the original using `cmp myfile.html myfile_copy.html`
+```
+idf.py -p PORT flash monitor
+```
 
-## Note
+(To exit the serial monitor, type ``Ctrl-]``.)
 
-Browsers often send large header fields when an HTML form is submit. Therefore, for the purpose of this example, `HTTPD_MAX_REQ_HDR_LEN` has been increased to 1024 in `sdkconfig.defaults`. User can adjust this value as per their requirement, keeping in mind the memory constraint of the hardware in use.
+See the Getting Started Guide for full steps to configure and use ESP-IDF to build projects.
+
+## Example Output
+Note that the output, in particular the order of the output, may vary depending on the environment.
+
+Console output if station connects to AP successfully:
+```
+I (589) wifi station: ESP_WIFI_MODE_STA
+I (599) wifi: wifi driver task: 3ffc08b4, prio:23, stack:3584, core=0
+I (599) system_api: Base MAC address is not set, read default base MAC address from BLK0 of EFUSE
+I (599) system_api: Base MAC address is not set, read default base MAC address from BLK0 of EFUSE
+I (629) wifi: wifi firmware version: 2d94f02
+I (629) wifi: config NVS flash: enabled
+I (629) wifi: config nano formating: disabled
+I (629) wifi: Init dynamic tx buffer num: 32
+I (629) wifi: Init data frame dynamic rx buffer num: 32
+I (639) wifi: Init management frame dynamic rx buffer num: 32
+I (639) wifi: Init management short buffer num: 32
+I (649) wifi: Init static rx buffer size: 1600
+I (649) wifi: Init static rx buffer num: 10
+I (659) wifi: Init dynamic rx buffer num: 32
+I (759) phy: phy_version: 4180, cb3948e, Sep 12 2019, 16:39:13, 0, 0
+I (769) wifi: mode : sta (30:ae:a4:d9:bc:c4)
+I (769) wifi station: wifi_init_sta finished.
+I (889) wifi: new:<6,0>, old:<1,0>, ap:<255,255>, sta:<6,0>, prof:1
+I (889) wifi: state: init -> auth (b0)
+I (899) wifi: state: auth -> assoc (0)
+I (909) wifi: state: assoc -> run (10)
+I (939) wifi: connected with #!/bin/test, aid = 1, channel 6, BW20, bssid = ac:9e:17:7e:31:40
+I (939) wifi: security type: 3, phy: bgn, rssi: -68
+I (949) wifi: pm start, type: 1
+
+I (1029) wifi: AP's beacon interval = 102400 us, DTIM period = 3
+I (2089) esp_netif_handlers: sta ip: 192.168.77.89, mask: 255.255.255.0, gw: 192.168.77.1
+I (2089) wifi station: got ip:192.168.77.89
+I (2089) wifi station: connected to ap SSID:myssid password:mypassword
+```
+
+Console output if the station failed to connect to AP:
+```
+I (589) wifi station: ESP_WIFI_MODE_STA
+I (599) wifi: wifi driver task: 3ffc08b4, prio:23, stack:3584, core=0
+I (599) system_api: Base MAC address is not set, read default base MAC address from BLK0 of EFUSE
+I (599) system_api: Base MAC address is not set, read default base MAC address from BLK0 of EFUSE
+I (629) wifi: wifi firmware version: 2d94f02
+I (629) wifi: config NVS flash: enabled
+I (629) wifi: config nano formating: disabled
+I (629) wifi: Init dynamic tx buffer num: 32
+I (629) wifi: Init data frame dynamic rx buffer num: 32
+I (639) wifi: Init management frame dynamic rx buffer num: 32
+I (639) wifi: Init management short buffer num: 32
+I (649) wifi: Init static rx buffer size: 1600
+I (649) wifi: Init static rx buffer num: 10
+I (659) wifi: Init dynamic rx buffer num: 32
+I (759) phy: phy_version: 4180, cb3948e, Sep 12 2019, 16:39:13, 0, 0
+I (759) wifi: mode : sta (30:ae:a4:d9:bc:c4)
+I (769) wifi station: wifi_init_sta finished.
+I (889) wifi: new:<6,0>, old:<1,0>, ap:<255,255>, sta:<6,0>, prof:1
+I (889) wifi: state: init -> auth (b0)
+I (1889) wifi: state: auth -> init (200)
+I (1889) wifi: new:<6,0>, old:<6,0>, ap:<255,255>, sta:<6,0>, prof:1
+I (1889) wifi station: retry to connect to the AP
+I (1899) wifi station: connect to the AP fail
+I (3949) wifi station: retry to connect to the AP
+I (3949) wifi station: connect to the AP fail
+I (4069) wifi: new:<6,0>, old:<6,0>, ap:<255,255>, sta:<6,0>, prof:1
+I (4069) wifi: state: init -> auth (b0)
+I (5069) wifi: state: auth -> init (200)
+I (5069) wifi: new:<6,0>, old:<6,0>, ap:<255,255>, sta:<6,0>, prof:1
+I (5069) wifi station: retry to connect to the AP
+I (5069) wifi station: connect to the AP fail
+I (7129) wifi station: retry to connect to the AP
+I (7129) wifi station: connect to the AP fail
+I (7249) wifi: new:<6,0>, old:<6,0>, ap:<255,255>, sta:<6,0>, prof:1
+I (7249) wifi: state: init -> auth (b0)
+I (8249) wifi: state: auth -> init (200)
+I (8249) wifi: new:<6,0>, old:<6,0>, ap:<255,255>, sta:<6,0>, prof:1
+I (8249) wifi station: retry to connect to the AP
+I (8249) wifi station: connect to the AP fail
+I (10299) wifi station: connect to the AP fail
+I (10299) wifi station: Failed to connect to SSID:myssid, password:mypassword
+```
