@@ -1,43 +1,40 @@
-# Simple HTTP File Server Example
+# WiFi softAP example
 
 (See the README.md file in the upper level 'examples' directory for more information about examples.)
 
-HTTP file server example demonstrates file serving with both upload and download capability, using the `esp_http_server` component of ESP-IDF. The following URIs are provided by the server:
 
-| URI                  | Method  | Description                                                                               |
-|----------------------|---------|-------------------------------------------------------------------------------------------|
-|`index.html`          | GET     | Redirects to `/`                                                                          |
-|`favicon.ico`         | GET     | Browsers use this path to retrieve page icon which is embedded in flash                   |
-|`/`                   | GET     | Responds with webpage displaying list of files on SPIFFS and form for uploading new files |
-|`/<file path>`        | GET     | For downloading files stored on SPIFFS                                                    |
-|`/upload/<file path>` | POST    | For uploading files on to SPIFFS. Files are sent as body of HTTP post requests            |
-|`/delete/<file path>` | POST    | Command for deleting a file from SPIFFS                                                   |
+## How to use example
 
-File server implementation can be found under `main/file_server.c` which uses SPIFFS for file storage. `main/upload_script.html` has some HTML, JavaScript and Ajax content used for file uploading, which is embedded in the flash image and used as it is when generating the home page of the file server.
+### Configure the project
 
-## Note
+```
+idf.py menuconfig
+```
 
-`/index.html` and `/favicon.ico` can be overridden by uploading files with same pathname to SPIFFS.
+* Set WiFi SSID and WiFi Password and Maximal STA connections under Example Configuration Options.
 
-## Usage
+### Build and Flash
 
-* Open the project configuration menu (`idf.py menuconfig`) go to `Example Configuration` ->
-    1. WIFI SSID: WIFI network to which your PC is also connected to.
-    2. WIFI Password: WIFI password
+Build the project and flash it to the board, then run monitor tool to view serial output:
 
-* In order to test the file server demo :
-    1. compile and burn the firmware `idf.py -p PORT flash`
-    2. run `idf.py -p PORT monitor` and note down the IP assigned to your ESP module. The default port is 80
-    3. test the example interactively on a web browser (assuming IP is 192.168.43.130):
-        1. open path `http://192.168.43.130/` or `http://192.168.43.130/index.html` to see an HTML web page with list of files on the server (initially empty)
-        2. use the file upload form on the webpage to select and upload a file to the server
-        3. click a file link to download / open the file on browser (if supported)
-        4. click the delete link visible next to each file entry to delete them
-    4. test the example using curl (assuming IP is 192.168.43.130):
-        1. `myfile.html` is uploaded to `/path/on/device/myfile_copy.html` using `curl -X POST --data-binary @myfile.html 192.168.43.130:80/upload/path/on/device/myfile_copy.html`
-        2. download the uploaded copy back : `curl 192.168.43.130:80/path/on/device/myfile_copy.html > myfile_copy.html`
-        3. compare the copy with the original using `cmp myfile.html myfile_copy.html`
+```
+idf.py -p PORT flash monitor
+```
 
-## Note
+(To exit the serial monitor, type ``Ctrl-]``.)
 
-Browsers often send large header fields when an HTML form is submit. Therefore, for the purpose of this example, `HTTPD_MAX_REQ_HDR_LEN` has been increased to 1024 in `sdkconfig.defaults`. User can adjust this value as per their requirement, keeping in mind the memory constraint of the hardware in use.
+See the Getting Started Guide for full steps to configure and use ESP-IDF to build projects.
+
+## Example Output
+
+There is the console output for this example:
+
+```
+I (917) phy: phy_version: 3960, 5211945, Jul 18 2018, 10:40:07, 0, 0
+I (917) wifi: mode : softAP (30:ae:a4:80:45:69)
+I (917) wifi softAP: wifi_init_softap finished.SSID:myssid password:mypassword
+I (26457) wifi: n:1 0, o:1 0, ap:1 1, sta:255 255, prof:1
+I (26457) wifi: station: 70:ef:00:43:96:67 join, AID=1, bg, 20
+I (26467) wifi softAP: station:70:ef:00:43:96:67 join, AID=1
+I (27657) tcpip_adapter: softAP assign IP to station,IP is: 192.168.4.2
+```
