@@ -46,6 +46,4 @@ wsl --list -v
 
 ## How to initialize project
 
-```BASH
-```
-
+- code-> RUN command -> ">ESP-IDF: New Project"
