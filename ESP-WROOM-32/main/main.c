@@ -14,28 +14,32 @@
 #include "nvs_flash.h"
 #include "esp_netif.h"
 #include "esp_eth.h"
+#include "driver/gpio.h"
 #include "protocol_examples_common.h"
 
 #include "tests.h"
 
+#define BLINK_GPIO (2)
 static const char *TAG = "example";
 
-static void disconnect_handler(void* arg, esp_event_base_t event_base, 
-                               int32_t event_id, void* event_data)
+static void disconnect_handler(void *arg, esp_event_base_t event_base,
+                               int32_t event_id, void *event_data)
 {
-    httpd_handle_t* server = (httpd_handle_t*) arg;
-    if (*server) {
+    httpd_handle_t *server = (httpd_handle_t *)arg;
+    if (*server)
+    {
         ESP_LOGI(TAG, "Stopping webserver");
         stop_tests(*server);
         *server = NULL;
     }
 }
 
-static void connect_handler(void* arg, esp_event_base_t event_base, 
-                            int32_t event_id, void* event_data)
+static void connect_handler(void *arg, esp_event_base_t event_base,
+                            int32_t event_id, void *event_data)
 {
-    httpd_handle_t* server = (httpd_handle_t*) arg;
-    if (*server == NULL) {
+    httpd_handle_t *server = (httpd_handle_t *)arg;
+    if (*server == NULL)
+    {
         ESP_LOGI(TAG, "Starting webserver");
         *server = start_tests();
     }
@@ -43,7 +47,13 @@ static void connect_handler(void* arg, esp_event_base_t event_base,
 
 void app_main(void)
 {
+
     static httpd_handle_t server = NULL;
+
+    gpio_pad_select_gpio(BLINK_GPIO);
+    /* Set the GPIO as a push/pull output */
+    gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
+    gpio_set_level(BLINK_GPIO, 1);
 
     ESP_ERROR_CHECK(nvs_flash_init());
     ESP_ERROR_CHECK(esp_netif_init());
@@ -68,5 +78,7 @@ void app_main(void)
 #endif // CONFIG_EXAMPLE_CONNECT_ETHERNET
 
     /* Start the server for the first time */
+    gpio_set_level(BLINK_GPIO, 0);
+
     server = start_tests();
 }

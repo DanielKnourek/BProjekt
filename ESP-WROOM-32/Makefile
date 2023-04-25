@@ -9,6 +9,10 @@ EXTRA_COMPONENT_DIRS = $(IDF_PATH)/examples/common_components/protocol_examples_
 
 include $(IDF_PATH)/make/project.mk
 
+.PHONY httpTestHello
+httpTestHello:
+	curl -X GET 192.168.137.158:1234/hello
+
 .PHONY httpTestecho
 httpTestecho:
 	echo "Hello friendo, what are the odds ?" > foo.log

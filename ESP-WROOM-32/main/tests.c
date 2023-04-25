@@ -4,9 +4,11 @@
 #include <esp_log.h>
 #include <esp_system.h>
 #include <esp_http_server.h>
+#include "driver/gpio.h"
 
 #include "tests.h"
 
+#define BLINK_GPIO (2)
 static const char *TAG = "TESTS";
 
 static int pre_start_mem, post_stop_mem;
@@ -162,13 +164,22 @@ static esp_err_t hello_status_get_handler(httpd_req_t *req)
 
 static esp_err_t led_off_handler(httpd_req_t *req)
 {
+#define STR "turning off LED"
     ESP_LOGI(TAG, "/turning off LED");
+    gpio_set_level(BLINK_GPIO, 0);
+    httpd_resp_send(req, STR, strlen(STR));
+    return ESP_OK;
+#undef STR
 }
 
 static esp_err_t led_on_handler(httpd_req_t *req)
 {
+#define STR "turning on LED"
     ESP_LOGI(TAG, "/turning on LED");
-    
+    gpio_set_level(BLINK_GPIO, 1);
+    httpd_resp_send(req, STR, strlen(STR));
+    return ESP_OK;
+#undef STR
 }
 
 static esp_err_t echo_post_handler(httpd_req_t *req)
@@ -441,7 +452,7 @@ static httpd_handle_t test_httpd_start(void)
     httpd_handle_t hd;
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     /* Modify this setting to match the number of test URI handlers */
-    config.max_uri_handlers = 9;
+    config.max_uri_handlers = 12;
     config.server_port = 1234;
 
     /* This check should be a part of http_server */
