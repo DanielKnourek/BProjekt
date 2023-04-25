@@ -13,7 +13,7 @@
     "idf.port": "/dev/ttyACM0",
     "idf.pythonBinPath": "/opt/esp/python_env/idf4.2_py3.6_env/bin/python",
     "idf.toolsPath": "/opt/esp",
-    "cmake.sourceDirectory": "${workspaceFolder}/.",
+    "cmake.sourceDirectory": "/workspaces/devcontainer/ESP-WROOM-32/main",
     "git.openRepositoryInParentFolders": "always",
     "idf.flashType": "UART",
     "files.associations": {
