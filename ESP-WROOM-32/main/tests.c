@@ -422,7 +422,7 @@ static const httpd_uri_t basic_handlers[] = {
         .user_ctx = NULL,
     },
     {
-        .uri = "/led_on",
+        .uri = "/led_on/*",
         .method = HTTP_GET,
         .handler = led_on_handler,
         .user_ctx = NULL,
@@ -454,6 +454,7 @@ static httpd_handle_t test_httpd_start(void)
     /* Modify this setting to match the number of test URI handlers */
     config.max_uri_handlers = 12;
     config.server_port = 1234;
+    config.uri_match_fn = httpd_uri_match_wildcard;
 
     /* This check should be a part of http_server */
     config.max_open_sockets = (CONFIG_LWIP_MAX_SOCKETS - 3);
