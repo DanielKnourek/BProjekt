@@ -18,6 +18,8 @@
     "idf.flashType": "UART",
     "files.associations": {
         "docker-compose.*.yml": "dockercompose",
-        "esp_spiffs.h": "c"
+        "esp_spiffs.h": "c",
+        "sdkconfig.h": "c",
+        "esp_eth.h": "c"
     }
 }
