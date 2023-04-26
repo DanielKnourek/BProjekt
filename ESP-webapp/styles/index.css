@@ -4,10 +4,9 @@
 @tailwind utilities;
 
 ::-webkit-scrollbar {
-    background-color: transparent;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    @apply bg-gray-500 dark:bg-green-400;
-  }
-  
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-500 dark:bg-green-400;
+}
