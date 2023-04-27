@@ -6,13 +6,14 @@ ARG CONTAINER_USER=esp
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
+RUN apt update && apt install -y iputils-ping nmap
+
 RUN groupadd --gid $USER_GID $CONTAINER_USER \
     && adduser --uid $USER_UID --gid $USER_GID --disabled-password --gecos "" ${CONTAINER_USER}
 USER ${CONTAINER_USER}
 ENV USER=${CONTAINER_USER}
 WORKDIR /home/${CONTAINER_USER}
 
-RUN apt update && apt install -y iputils-ping && apt install -y nmap
 
 RUN echo "source /opt/esp/idf/export.sh > /dev/null 2>&1" >> ~/.bashrc
 
