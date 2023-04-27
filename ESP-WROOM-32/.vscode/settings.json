@@ -20,6 +20,12 @@
         "docker-compose.*.yml": "dockercompose",
         "esp_spiffs.h": "c",
         "sdkconfig.h": "c",
-        "esp_eth.h": "c"
+        "esp_eth.h": "c",
+        "stdio.h": "c",
+        "freertos.h": "c",
+        "gpio.h": "c",
+        "task.h": "c",
+        "network_handler.h": "c",
+        "network_connectivity.h": "c"
     }
 }
