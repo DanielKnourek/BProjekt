@@ -1,0 +1,48 @@
+menu "Application - Wifi configuration"
+
+    config WIFI_SEARCH_SSID
+        string "WiFi SSID to search for"
+        default "SecretWiFi"
+        help
+            SSID (network name) for the example to connect to.
+
+    config WIFI_SEARCH_PASSWORD
+        string "WiFi password to search for"
+        default "secretpass"
+        help
+            WiFi password (WPA or WPA2) for WiFi
+
+    config WIFI_SEARCH_RETRIES
+        int "WiFi retries to search for"
+        default 3
+        help
+            Set the Maximum retry to avoid station reconnecting to the AP unlimited when the AP is really inexistent.
+        
+endmenu
+menu "Application - Wifi fallback AP configuration"
+    
+    config WIFI_FB_AP_SSID
+        string "WiFi SSID to promote as"
+        default "SecretWiFiESP"
+        help
+            SSID (network name) for app to promote as.
+
+    config WIFI_FB_AP_PASSWORD
+        string "WiFi password to search for"
+        default "secretpass"
+        help
+            WiFi password (WPA or WPA2) for app to set.
+
+    config WIFI_FB_AP_CHANNEL
+        int "WiFi Channel"
+        range 1 13
+        default 1
+        help
+            WiFi channel (network channel) for the AP to use.
+
+    config WIFI_FB_AP_CONN
+        int "Maximal AP connections"
+        default 4
+        help
+            Max number of the Clients connects to AP.
+endmenu

@@ -26,6 +26,10 @@
         "gpio.h": "c",
         "task.h": "c",
         "network_handler.h": "c",
-        "network_connectivity.h": "c"
+        "network_connectivity.h": "c",
+        "esp_log.h": "c",
+        "event_groups.h": "c",
+        "wifi_client.h": "c",
+        "esp_event.h": "c"
     }
 }

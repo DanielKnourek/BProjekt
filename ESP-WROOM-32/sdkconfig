@@ -127,6 +127,23 @@ CONFIG_BLINK_GPIO=2
 # end of Example Configuration
 
 #
+# user - Wifi configuration
+#
+CONFIG_WIFI_SEARCH_SSID="SecretWiFi"
+CONFIG_WIFI_SEARCH_PASSWORD="secretpass"
+CONFIG_WIFI_SEARCH_RETRIES=5
+# end of user - Wifi configuration
+
+#
+# user - Wifi fallback AP configuration
+#
+CONFIG_WIFI_FB_AP_SSID="SecretWiFiESP"
+CONFIG_WIFI_FB_AP_PASSWORD="secretpass"
+CONFIG_WIFI_FB_AP_CHANNEL=1
+CONFIG_WIFI_FB_AP_CONN=4
+# end of user - Wifi fallback AP configuration
+
+#
 # Compiler options
 #
 CONFIG_COMPILER_OPTIMIZATION_DEFAULT=y

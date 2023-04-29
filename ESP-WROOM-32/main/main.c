@@ -14,7 +14,7 @@
 #include "sdkconfig.h"
 
 // Custom components
-#include "network_connectivity.h"
+#include "net_con.h"
 
 /* Can use project configuration menu (idf.py menuconfig) to choose the GPIO to
    blink, or you can edit the following line and set a number here.
@@ -28,11 +28,12 @@ void app_main(void) {
        Technical Reference for a list of pads and their default
        functions.)
     */
+    init_test();
+    net_con_init();
     gpio_pad_select_gpio(BLINK_GPIO);
     /* Set the GPIO as a push/pull output */
     gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
     while (1) {
-        init_test();
         /* Blink off (output low) */
         printf("Turning off the LED\n");
         gpio_set_level(BLINK_GPIO, 0);
@@ -40,6 +41,6 @@ void app_main(void) {
         /* Blink on (output high) */
         printf("Turning on the LED\n");
         gpio_set_level(BLINK_GPIO, 1);
-        vTaskDelay(10 / portTICK_PERIOD_MS);
+        vTaskDelay(50 / portTICK_PERIOD_MS);
     }
 }
