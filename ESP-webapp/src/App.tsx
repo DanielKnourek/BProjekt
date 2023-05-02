@@ -2,6 +2,7 @@ import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import Sidebar from "./components/Sidebar";
+import LedControl from "./components/LedControl";
 
 const App = () => {
   const [count, setCount] = useState(0);
@@ -28,6 +29,7 @@ const App = () => {
           </p>
         </div>
         <p className=" ">Click on the Vite and React logos to learn more</p>
+      <LedControl/>
       </div>
     </>
   );
