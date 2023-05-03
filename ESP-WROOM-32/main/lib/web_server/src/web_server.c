@@ -33,6 +33,7 @@ static esp_err_t handler_get_api_led(httpd_req_t* req) {
 #define STR "LED status"
     char* buf;
     size_t buf_len;
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
 
     buf_len = httpd_req_get_url_query_len(req) + 1;
     if (buf_len < 1) {
@@ -63,14 +64,17 @@ static esp_err_t handler_get_api_led(httpd_req_t* req) {
 }
 
 static esp_err_t app_frontend_handler(httpd_req_t* req) {
-    // extern const unsigned char upload_script_start[]
-    // asm("_binary_index_html_start"); extern const unsigned char
-    // upload_script_end[]   asm("_binary_index_html_end"); const size_t
-    // upload_script_size = (upload_script_end - upload_script_start);
+    // extern const unsigned char upload_script_start[] asm(
+    //     "_binary_index_html_start");
+    // extern const unsigned char upload_script_end[] asm(
+    //     "_binary_index_html_end");
+    // const size_t upload_script_size = (upload_script_end -
+    // upload_script_start);
 
     // /* Add file upload form and script which on execution sends a POST
-    // request to /upload */ httpd_resp_send_chunk(req, (const char
-    // *)upload_script_start, upload_script_size);
+    // request to /upload */
+    // httpd_resp_send_chunk(req, (const char*)upload_script_start,
+    //                       upload_script_size);
     httpd_resp_sendstr_chunk(req, NULL);
     return ESP_OK;
 }

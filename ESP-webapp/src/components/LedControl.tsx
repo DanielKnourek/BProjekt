@@ -1,27 +1,34 @@
-const sideBar: React.FC = () => {
+import React, { useContext } from "react";
+import { LogContext } from "@lib/Logger";
+import { ENV, getAPIuri } from "@lib/env";
+const LedControl: React.FC = () => {
+  const Logger = useContext(LogContext);
   const submitAction = (e: React.FormEvent) => {
     e.preventDefault();
   };
   return (
-    <div className="m-4 rounded-xl bg-gray-400 p-4">
-      Control on board LED
+    <div className="items-center p-2">
       <form onSubmit={submitAction}>
         <button
-          className="m-1 rounded-sm bg-green-600 p-1 text-white"
+          className="m-1 w-full rounded-sm bg-green-600 p-1 text-white focus:bg-green-800"
           type="submit"
           name="led-on"
           onClick={() => {
-            fetch("http://192.168.137.183:80/api/led?LED1=1");
+            fetch(`${getAPIuri(ENV)}led?LED1=1`)
+              .then((res) => res.text())
+              .then((json) => Logger?.set(`${Logger?.get} : ${json}\n`));
           }}
         >
           LED set on
         </button>
         <button
-          className="m-1 rounded-sm bg-red-600 p-1  text-white"
+          className="m-1 w-full rounded-sm bg-red-600 p-1  text-white focus:bg-red-800"
           type="submit"
           name="led-on"
           onClick={() => {
-            fetch("http://192.168.137.183:80/api/led?LED1=0");
+            fetch(`${getAPIuri(ENV)}led?LED1=0`)
+              .then((res) => res.text())
+              .then((json) => Logger?.set(`${Logger?.get} : ${json}\n`));
           }}
         >
           LED set off
@@ -31,4 +38,4 @@ const sideBar: React.FC = () => {
   );
 };
 
-export default sideBar;
+export default LedControl;
