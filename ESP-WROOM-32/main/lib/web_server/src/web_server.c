@@ -48,6 +48,7 @@ static esp_err_t handler_get_api_led(httpd_req_t* req) {
 
     if (httpd_req_get_url_query_str(req, buf, buf_len) != ESP_OK) {
         ESP_LOGI(TAG, "cannot load query string");
+        free(buf);
         return handler_api_error(req);
     }
     char param[32];
@@ -63,18 +64,41 @@ static esp_err_t handler_get_api_led(httpd_req_t* req) {
 #undef STR
 }
 
-static esp_err_t app_frontend_handler(httpd_req_t* req) {
-    // extern const unsigned char upload_script_start[] asm(
-    //     "_binary_index_html_start");
-    // extern const unsigned char upload_script_end[] asm(
-    //     "_binary_index_html_end");
-    // const size_t upload_script_size = (upload_script_end -
-    // upload_script_start);
+static esp_err_t handler_get_api_random(httpd_req_t* req) {
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-cache");
+    httpd_resp_set_hdr(req, "Content-Type", "text/event-stream");
+    int random = 0;
+    char str[40];
 
-    // /* Add file upload form and script which on execution sends a POST
-    // request to /upload */
-    // httpd_resp_send_chunk(req, (const char*)upload_script_start,
-    //                       upload_script_size);
+    for (size_t i = 0; i < 45; i++) {
+        esp_fill_random(&random, sizeof random);
+        ESP_LOGI(TAG, "Random number generated: %d", random);
+        sprintf(str, "data: Rand:%d", random);
+        httpd_resp_send_chunk(req, str, strlen(str));
+
+        vTaskDelay(500 / portTICK_PERIOD_MS);
+        httpd_resp_sendstr_chunk(req, "\n\n");
+
+        vTaskDelay(500 / portTICK_PERIOD_MS);
+    }
+    ESP_LOGI(TAG, "All number generated");
+    httpd_resp_sendstr_chunk(req, NULL);
+    return ESP_OK;
+}
+
+static esp_err_t app_frontend_handler(httpd_req_t* req) {
+    extern const unsigned char upload_script_start[] asm(
+        "_binary_index_html_start");
+    extern const unsigned char upload_script_end[] asm(
+        "_binary_index_html_end");
+    const size_t upload_script_size = (upload_script_end -
+    upload_script_start);
+
+    /* Add file upload form and script which on execution sends a POST
+    request to /upload */
+    httpd_resp_send_chunk(req, (const char*)upload_script_start,
+                          upload_script_size);
     httpd_resp_sendstr_chunk(req, NULL);
     return ESP_OK;
 }
@@ -90,6 +114,12 @@ static const httpd_uri_t default_paths[] = {
         .uri = "/api/led",
         .method = HTTP_GET,
         .handler = handler_get_api_led,
+        .user_ctx = NULL,
+    },
+    {
+        .uri = "/api/random",
+        .method = HTTP_GET,
+        .handler = handler_get_api_random,
         .user_ctx = NULL,
     },
     {

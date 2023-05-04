@@ -1,11 +1,14 @@
 import React, { Dispatch } from "react";
 
 export interface Logger {
-  get: string;
-  set: Dispatch<string>;
+  get: Array<string>;
+  set: Dispatch<Array<string>>;
 }
-export const LogContext = React.createContext<Logger | null>(null);
+const LogContext = React.createContext<Logger | null>(null);
 
+const addLog = (Logger: Logger, logString: string) => {
+  Logger?.set([...Logger.get, `${Logger.get.length}: ${logString}\n`]);
+};
 // const initLogger = (): Logger => {
 //   const [Logs, setLogs] = useState("");
 
@@ -13,3 +16,5 @@ export const LogContext = React.createContext<Logger | null>(null);
 // };
 
 // export { initLogger };
+
+export { LogContext, addLog };

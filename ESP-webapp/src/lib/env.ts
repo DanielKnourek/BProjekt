@@ -5,11 +5,13 @@ type ENV_type = {
 };
 
 const ENV = {
-  API_HOST: "http://192.168.137.90",
+  API_HOST: "http://192.168.137.53",
   API_PORT: 80,
   API_PATH: "api/",
 };
 
+// const getAPIuri = (ENV: ENV_type) =>
+//   `${ENV.API_HOST}:${ENV.API_PORT}/${ENV.API_PATH}`;
 const getAPIuri = (ENV: ENV_type) =>
-  `${ENV.API_HOST}:${ENV.API_PORT}/${ENV.API_PATH}`;
+  `${ENV.API_PATH}`;
 export { ENV, getAPIuri };

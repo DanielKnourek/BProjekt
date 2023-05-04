@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { LogContext } from "@lib/Logger";
+import { LogContext, addLog } from "@lib/Logger";
 import { ENV, getAPIuri } from "@lib/env";
 const LedControl: React.FC = () => {
   const Logger = useContext(LogContext);
@@ -16,7 +16,9 @@ const LedControl: React.FC = () => {
           onClick={() => {
             fetch(`${getAPIuri(ENV)}led?LED1=1`)
               .then((res) => res.text())
-              .then((json) => Logger?.set(`${Logger?.get} : ${json}\n`));
+              .then(
+                (json) => Logger && addLog(Logger, `${json}=1`)
+              );
           }}
         >
           LED set on
@@ -28,7 +30,7 @@ const LedControl: React.FC = () => {
           onClick={() => {
             fetch(`${getAPIuri(ENV)}led?LED1=0`)
               .then((res) => res.text())
-              .then((json) => Logger?.set(`${Logger?.get} : ${json}\n`));
+              .then((json) => Logger && addLog(Logger, `${json}=0`));
           }}
         >
           LED set off
