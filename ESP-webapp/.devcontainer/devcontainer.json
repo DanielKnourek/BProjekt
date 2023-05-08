@@ -1,10 +1,9 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 {
   "name": "ESP Frontend Webapp",
-  "build": {
-    "dockerfile": "esp-frontend.dockerfile",
-    "context": "."
-  },
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "frontend",
+  "workspaceFolder": "/workspaces/BProjekt/ESP-webapp",
   // Features to add to the dev container. More info: https://containers.dev/features.
   // "features": {},
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
@@ -29,7 +28,7 @@
         "editor.formatOnSave": true
       }
     }
-  }
+  },
   // Uncomment to connect as an existing user other than the container default. More info: https://aka.ms/dev-containers-non-root.
-  // "remoteUser": "vscode",
+  "remoteUser": "node",
 }

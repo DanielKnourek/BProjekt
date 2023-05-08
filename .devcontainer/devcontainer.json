@@ -36,9 +36,10 @@
 		"--privileged"
 	],
 
-	"initializeCommand": ["make", "-C",  ".devcontainer/",  "tryMount"]
+	"initializeCommand": ["make", "-C",  ".devcontainer/",  "tryMount"],
 	
-	// "mounts": [
+	"mounts": [
+		"source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
 	// 	"source=/dev/ttyACM0,target=/dev/ttyACM0,type=bind"
-	// ],
+	],
 }
