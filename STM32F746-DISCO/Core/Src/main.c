@@ -249,7 +249,8 @@ int main(void)
 	char rx[10];
 	char tx[10];
 	HAL_UART_Receive_DMA(&huart6, rx, sizeof(rx));
-
+    static const char *TurnOnMessage = "Y";
+    static const char *TurnOffMessage = "N";
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -262,18 +263,23 @@ int main(void)
     /* USER CODE BEGIN 3 */
     	if(is_set(&Flags, FT_Flag1)){
     		reset_flag(&Flags, FT_Flag1);
-    		memcpy(tx, rx, sizeof(tx));
+
+    		if(rx[0] == 'Y') {
+//    			set_flag(&Flags, FT_Flag5);
+    			HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
+    		}
+    		if(rx[0] == 'N') {
+//    			reset_flag(&Flags, FT_Flag5);
+    			HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_RESET);
+    		}
+    		memset(rx, 'F', sizeof(rx));
     		HAL_UART_Receive_DMA(&huart6, rx, sizeof(rx));
-
-    		__NOP();
-
-    		HAL_UART_Transmit_DMA(&huart6, tx, sizeof(tx));
     	}
 
-		if ((currentTick - lastTick) >= 500) {
+		if ((currentTick - lastTick) >= 50) {
 			lastTick = currentTick;
 
-			if (is_set(&Flags, FT_BTN1)) {
+			if (is_set(&Flags, FT_BTN1)) { // detected interrupt of BTN1
 				reset_flag(&Flags, FT_BTN1);
 				if(is_set(&Flags, FT_Flag7)){
 					reset_flag(&Flags, FT_Flag7);
@@ -283,29 +289,18 @@ int main(void)
 				}
 			}
 
-			if (is_set(&Flags, FT_Flag7)) {
-				if(!is_set(&Flags, FT_Flag6)){ // First write to USART after BTN1
-					set_flag(&Flags, FT_Flag6);
-					const char *msg = "Hello wrd";
+//			if (is_set(&Flags, FT_Flag7)) {
+//					set_flag(&Flags, FT_Flag6);
 					memset(tx, 0, sizeof(tx));
-		    		memcpy(tx, msg, sizeof(tx));
+					if(is_set(&Flags, FT_Flag7)){
+			    		memcpy(tx, TurnOnMessage, sizeof(tx));
+					}else{
+			    		memcpy(tx, TurnOffMessage, sizeof(tx));
+					}
 
 		    		HAL_UART_Transmit_DMA(&huart6, tx, sizeof(tx));
-				}
-				switch ((int) state) {
-				case 1:
-					state = 0;
-					HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
 
-					break;
-				case 0:
-				default:
-					state = 1;
-
-					HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
-					break;
-				}
-			}
+//			}
 		}
 
 	}
