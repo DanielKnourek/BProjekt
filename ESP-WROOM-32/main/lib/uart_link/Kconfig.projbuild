@@ -1,0 +1,23 @@
+menu "Application - Uart link Configuration"
+    config UART_NUM
+        int "UART number"
+        default 2
+        help
+            What uart is used.
+    config UART_BAUD
+        int "UART baud rate"
+        default 115200
+        help
+            Speed of uart baud used in commuication. 
+    config UART_GPIO_RX
+        int "GPIO Rx PIN"
+        default 16
+        help
+            GPIO number of Rx Pin used to transmit communication. 
+
+    config UART_GPIO_TX
+        int "GPIO Tx PIN"
+        default 17
+        help
+            GPIO number of Tx Pin used to recieve communication. 
+endmenu

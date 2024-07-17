@@ -15,8 +15,8 @@
 
 // Custom components
 #include "net_con.h"
+#include "uart_link.h"
 #include "web_server.h"
-
 /* Can use project configuration menu (idf.py menuconfig) to choose the GPIO to
    blink, or you can edit the following line and set a number here.
 */
@@ -37,15 +37,16 @@ void app_main(void) {
     web_server_start();
 
     gpio_set_level(BLINK_GPIO, 0);
-   //  /* Set the GPIO as a push/pull output */
-   //  while (1) {
-   //      /* Blink off (output low) */
-   //      printf("Turning off the LED\n");
-   //      gpio_set_level(BLINK_GPIO, 0);
-   //      vTaskDelay(10000 / portTICK_PERIOD_MS);
-   //      /* Blink on (output high) */
-   //      printf("Turning on the LED\n");
-   //      gpio_set_level(BLINK_GPIO, 1);
-   //      vTaskDelay(50 / portTICK_PERIOD_MS);
-   //  }
+
+    //  /* Set the GPIO as a push/pull output */
+    //  while (1) {
+    //      /* Blink off (output low) */
+    //      printf("Turning off the LED\n");
+    //      gpio_set_level(BLINK_GPIO, 0);
+    //      vTaskDelay(10000 / portTICK_PERIOD_MS);
+    //      /* Blink on (output high) */
+    //      printf("Turning on the LED\n");
+    //      gpio_set_level(BLINK_GPIO, 1);
+    //      vTaskDelay(50 / portTICK_PERIOD_MS);
+    //  }
 }
