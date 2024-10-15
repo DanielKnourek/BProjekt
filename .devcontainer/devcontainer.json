@@ -13,7 +13,7 @@
 				"espressif.esp-idf-extension",
 				"ms-vscode.cmake-tools",
 				"ms-vscode.cpptools",
-				"espressif.esp-idf-extension",
+				"espressif.esp-idf-extension"
 			],
 			"settings": {
 				"idf.showOnboardingOnInit": false,
@@ -25,7 +25,7 @@
 				"cmake.sourceDirectory": "${workspaceFolder}/ESP-WROOM-32",
 				"editor.defaultFormatter": "ms-vscode.cpptools",
 				"C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, IndentWidth: 4 }"
-			},
+			}
 		}
 	},
 	// Install relevant extensions in the dev container
@@ -41,10 +41,10 @@
 		".devcontainer/",
 		"tryMount"
 	],
-	// "postAttachCommand": "sudo -S chown -R esp /workspaces",
+
 	// "mounts": [
 	// 	"source=/dev/ttyACM0,target=/dev/ttyACM0,type=bind"
 	// ],
-	"remoteUser": "esp",
-	"updateRemoteUserUID": true
+
+	"remoteUser": "esp"
 }
