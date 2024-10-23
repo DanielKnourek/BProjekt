@@ -3,7 +3,11 @@ examples/
 tools/
 docs/
 make/
+managed_components/
 
 # ignore install scripts
 install.*
 export.*
+
+# config file backup
+sdkconfig.old

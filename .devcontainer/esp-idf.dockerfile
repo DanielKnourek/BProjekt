@@ -1,10 +1,10 @@
 
-FROM espressif/idf:release-v5.4
+FROM espressif/idf:release-v5.3
 
 ARG DEBIAN_FRONTEND=nointeractive
 ARG CONTAINER_USER=esp
 # should match host user uid
-ARG USER_UID=1000
+ARG USER_UID=1050
 ARG USER_GID=$USER_UID
 
 RUN apt update && apt install -y iputils-ping nmap
@@ -38,8 +38,8 @@ RUN wget --no-verbose ${QEMU_URL} \
 
 ENV PATH=/opt/qemu/bin:${PATH}
 
-# del user to avoid uid conflict
-RUN deluser --remove-home ubuntu
+# del user to avoid uid conflict if nessesary
+# RUN deluser --remove-home ubuntu
 
 RUN groupadd --gid $USER_GID $CONTAINER_USER \
   && adduser --uid $USER_UID --gid $USER_GID --disabled-password --gecos "" ${CONTAINER_USER} \
