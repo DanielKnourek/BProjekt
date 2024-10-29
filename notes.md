@@ -15,6 +15,7 @@ setup resources:
 
 - .devcontainer.json <https://gist.github.com/bwrrp/dc2fe8926dfe8860da21cb87ba91aeaa>
 
+- https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/additionalfeatures/docker-container.html
 
 prvilages for USB:
 <https://github.com/dorssel/usbipd-win/wiki/WSL-support>

@@ -2,8 +2,8 @@
     "C_Cpp.intelliSenseEngine": "default",
     "idf.adapterTargetName": "esp32",
     "idf.customExtraVars": {
-        "OPENOCD_SCRIPTS": "/opt/esp/tools/openocd-esp32/v0.12.0-esp32-20230313/openocd-esp32/share/openocd/scripts",
-        "ESP_ROM_ELF_DIR": "/opt/esp/tools/esp-rom-elfs/20230320/"
+        "OPENOCD_SCRIPTS": "/opt/esp/tools/openocd-esp32/v0.12.0-esp32-20240821/openocd-esp32/share/openocd/scripts",
+        "ESP_ROM_ELF_DIR": "/opt/esp/tools/esp-rom-elfs/20240305/"
     },
     "idf.espIdfPath": "/opt/esp/idf",
     "idf.openOcdConfigs": [
@@ -11,27 +11,14 @@
         "target/esp32.cfg"
     ],
     "idf.port": "/dev/ttyACM0",
-    "idf.pythonBinPath": "/opt/esp/python_env/idf4.2_py3.6_env/bin/python",
+    "idf.pythonBinPath": "/opt/esp/python_env/idf5.3_py3.10_env/bin/python",
     "idf.toolsPath": "/opt/esp",
     "cmake.sourceDirectory": "${workspaceFolder}/.",
     "git.openRepositoryInParentFolders": "always",
     "idf.flashType": "UART",
     "files.associations": {
         "docker-compose.*.yml": "dockercompose",
-        "esp_spiffs.h": "c",
-        "sdkconfig.h": "c",
-        "esp_eth.h": "c",
-        "stdio.h": "c",
-        "freertos.h": "c",
-        "gpio.h": "c",
-        "task.h": "c",
-        "network_handler.h": "c",
-        "network_connectivity.h": "c",
-        "esp_log.h": "c",
-        "event_groups.h": "c",
-        "wifi_client.h": "c",
-        "esp_event.h": "c",
-        "esp_http_server.h": "c",
-        "web_server.h": "c"
+        "esp_system.h": "c",
+        "wifi_ap.h": "c"
     }
 }
