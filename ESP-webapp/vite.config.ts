@@ -1,15 +1,19 @@
 import { PluginOption, defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import viteCompression from "vite-plugin-compression";
+import { viteSingleFile } from "vite-plugin-singlefile"
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   let plugins: PluginOption[] | ReturnType<typeof viteCompression> = [];
 
   plugins.push(react());
+  plugins.push(viteSingleFile());
 
   if (mode == "gz") {
-    plugins.push(viteCompression());
+    plugins.push(viteCompression({
+      algorithm: "gzip",
+    }));
 
     return {
       plugins: plugins,

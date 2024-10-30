@@ -21,10 +21,12 @@ static esp_err_t hello_get_handler(httpd_req_t* req) {
 
 static esp_err_t app_frontend_handler(httpd_req_t* req) {
 
-    extern const unsigned char upload_script_start[] asm("_binary_index_html_start");
-    extern const unsigned char upload_script_end[]   asm("_binary_index_html_end");
+    extern const unsigned char upload_script_start[] asm("_binary_index_html_gz_start");
+    extern const unsigned char upload_script_end[]   asm("_binary_index_html_gz_end");
     const size_t upload_script_size = (upload_script_end - upload_script_start);
 
+    // TODO: add x-gzip for compatibility
+    httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
     /* Add file upload form and script which on execution sends a POST request to /upload */
     httpd_resp_send_chunk(req, (const char *)upload_script_start, upload_script_size);
     httpd_resp_sendstr_chunk(req, NULL);
@@ -57,9 +59,9 @@ static void register_default_paths(httpd_handle_t server) {
 }
 
 httpd_handle_t start_webserver(void) {
-    httpd_handle_t server = NULL;
+    httpd_handle_t server = NULL; 
 
-    // server configuration
+    // server configuration 
     httpd_config_t server_config = HTTPD_DEFAULT_CONFIG();
     server_config.max_uri_handlers = 12;
     server_config.server_port = HTTP_SERVER_PORT;
