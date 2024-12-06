@@ -19,6 +19,7 @@
     "files.associations": {
         "docker-compose.*.yml": "dockercompose",
         "esp_system.h": "c",
-        "wifi_ap.h": "c"
+        "wifi_ap.h": "c",
+        "freertos.h": "c"
     }
 }
