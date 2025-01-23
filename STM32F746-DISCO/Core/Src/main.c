@@ -247,7 +247,7 @@ int main(void)
 
 	char rx[10];
 	char tx[10];
-	HAL_UART_Receive_DMA(&huart6, rx, sizeof(rx));
+	HAL_UART_Receive_DMA(&huart6, (uint8_t *)rx, sizeof(rx));
     static const char *TurnOnMessage = "YES";
     static const char *TurnOffMessage = "NO";
   /* USER CODE END 2 */
@@ -272,7 +272,7 @@ int main(void)
     			HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_RESET);
     		}
     		memset(rx, 'F', sizeof(rx));
-    		HAL_UART_Receive_DMA(&huart6, rx, sizeof(rx));
+    		HAL_UART_Receive_DMA(&huart6, (uint8_t *)rx, sizeof(rx));
     	}
 
 		if ((currentTick - lastTick) >= 50) {
@@ -292,12 +292,12 @@ int main(void)
 //					set_flag(&Flags, FT_Flag6);
 					memset(tx, 0, sizeof(tx));
 					if(is_set(&Flags, FT_Flag7)){
-			    		memcpy(tx, TurnOnMessage, sizeof(TurnOnMessage));
+			    		memcpy(tx, TurnOnMessage, sizeof(*TurnOnMessage));
 					}else{
-			    		memcpy(tx, TurnOffMessage, sizeof(TurnOffMessage));
+			    		memcpy(tx, TurnOffMessage, sizeof(*TurnOffMessage));
 					}
 
-		    		HAL_UART_Transmit_DMA(&huart6, tx, sizeof(tx));
+		    		HAL_UART_Transmit_DMA(&huart6, (uint8_t *)tx, sizeof(tx));
 
 //			}
 		}
