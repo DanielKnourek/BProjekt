@@ -25,6 +25,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdlib.h>
 #include "flag_tools.h"
+#include "messenger.pb.h"
 
 /* USER CODE END Includes */
 
