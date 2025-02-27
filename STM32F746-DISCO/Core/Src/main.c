@@ -26,6 +26,8 @@
 #include <stdlib.h>
 #include "flag_tools.h"
 #include "messenger.pb.h"
+#include "pb_encode.h"
+#include "pb_decode.h"
 
 /* USER CODE END Includes */
 
@@ -301,6 +303,30 @@ int main(void)
 		    		HAL_UART_Transmit_DMA(&huart6, (uint8_t *)tx, sizeof(tx));
 
 //			}
+		}
+		if(false) {
+
+		    uint8_t buffer[128];
+		    size_t message_length;
+		    bool status;
+
+		    //encode
+			aliveStatus message = aliveStatus_init_zero;
+			pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
+
+			message.data = 64;
+			// message.signage = "ESP";
+
+			status = pb_encode(&stream, aliveStatus_fields, &message);
+
+			// decode
+			aliveStatus message_dec = aliveStatus_init_zero;
+			pb_istream_t stream_dec = pb_istream_from_buffer(buffer, message_length);
+
+	        status = pb_decode(&stream_dec, aliveStatus_fields, &message_dec);
+
+	        printf("Your lucky number was %d!\n", (int)message_dec.data);
+
 		}
 
 	}
