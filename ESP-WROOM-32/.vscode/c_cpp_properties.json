@@ -7,7 +7,8 @@
             "includePath": [
                 "${config:idf.espIdfPath}/components/**",
                 "${config:idf.espIdfPathWin}/components/**",
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "/opt/esp/idf/components/protobuf-c/protobuf-c"
             ],
             "browse": {
                 "path": [

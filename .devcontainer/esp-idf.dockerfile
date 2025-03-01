@@ -7,7 +7,12 @@ ARG CONTAINER_USER=esp
 ARG USER_UID=1050
 ARG USER_GID=$USER_UID
 
-RUN apt update && apt install -y iputils-ping nmap
+RUN apt update && apt-get install -y iputils-ping nmap
+
+#add protobuf compiler
+RUN apt-get update \
+  && apt-get install -y -q \
+  protobuf-c-compiler libprotobuf-c-dev
 
 # Allow WSL to take ownership of mounted volume. add sudo
 RUN apt-get update \
@@ -19,6 +24,7 @@ RUN apt-get update \
   libpixman-1-0 \
   sudo \
   && rm -rf /var/lib/apt/lists/*
+
 
 RUN echo "esp ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/esp
 

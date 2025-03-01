@@ -1,0 +1,7 @@
+// messenger version 0.0.2
+syntax = "proto2";
+
+message aliveStatus {
+    required int32 data=1;
+    required string signage=2 [default = "ESP"];
+}

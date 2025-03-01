@@ -20,6 +20,10 @@
         "docker-compose.*.yml": "dockercompose",
         "esp_system.h": "c",
         "wifi_ap.h": "c",
-        "freertos.h": "c"
+        "freertos.h": "c",
+        "web_server.h": "c",
+        "serial_link.h": "c",
+        "messenger.pb-c.h": "c",
+        "protobuf-c.h": "c"
     }
 }

@@ -1,0 +1,9 @@
+menu "Application - UART"
+    
+    config UART_TEST
+        string "testest"
+        default "SecretWiFi"
+        help
+            value of (test)
+
+endmenu
