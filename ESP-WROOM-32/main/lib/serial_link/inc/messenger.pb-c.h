@@ -15,49 +15,122 @@ PROTOBUF_C__BEGIN_DECLS
 #endif
 
 
-typedef struct _AliveStatus AliveStatus;
+typedef struct _MessageID MessageID;
+typedef struct _Link1Options Link1Options;
+typedef struct _Link1Data Link1Data;
 
 
 /* --- enums --- */
 
+typedef enum _MessageType {
+  MESSAGE_TYPE__ALIVE_CHECK = 0,
+  MESSAGE_TYPE__LINK1_OPTIONS = 1,
+  MESSAGE_TYPE__LINK1_DATA = 2,
+  MESSAGE_TYPE__LINK2_OPTIONS = 3,
+  MESSAGE_TYPE__LINK2_DATA = 4
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(MESSAGE_TYPE)
+} MessageType;
 
 /* --- messages --- */
 
-struct  _AliveStatus
+struct  _MessageID
 {
   ProtobufCMessage base;
-  int32_t data;
-  char *signage;
+  MessageType id;
 };
-extern char alive_status__signage__default_value[];
-#define ALIVE_STATUS__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&alive_status__descriptor) \
-    , 0, alive_status__signage__default_value }
+#define MESSAGE_ID__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&message_id__descriptor) \
+    , MESSAGE_TYPE__ALIVE_CHECK }
 
 
-/* AliveStatus methods */
-void   alive_status__init
-                     (AliveStatus         *message);
-size_t alive_status__get_packed_size
-                     (const AliveStatus   *message);
-size_t alive_status__pack
-                     (const AliveStatus   *message,
+struct  _Link1Options
+{
+  ProtobufCMessage base;
+  protobuf_c_boolean enable;
+};
+#define LINK1_OPTIONS__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&link1_options__descriptor) \
+    , 0 }
+
+
+struct  _Link1Data
+{
+  ProtobufCMessage base;
+  MessageType id;
+  int32_t sensor_data;
+};
+#define LINK1_DATA__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&link1_data__descriptor) \
+    , MESSAGE_TYPE__ALIVE_CHECK, 0 }
+
+
+/* MessageID methods */
+void   message_id__init
+                     (MessageID         *message);
+size_t message_id__get_packed_size
+                     (const MessageID   *message);
+size_t message_id__pack
+                     (const MessageID   *message,
                       uint8_t             *out);
-size_t alive_status__pack_to_buffer
-                     (const AliveStatus   *message,
+size_t message_id__pack_to_buffer
+                     (const MessageID   *message,
                       ProtobufCBuffer     *buffer);
-AliveStatus *
-       alive_status__unpack
+MessageID *
+       message_id__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   alive_status__free_unpacked
-                     (AliveStatus *message,
+void   message_id__free_unpacked
+                     (MessageID *message,
+                      ProtobufCAllocator *allocator);
+/* Link1Options methods */
+void   link1_options__init
+                     (Link1Options         *message);
+size_t link1_options__get_packed_size
+                     (const Link1Options   *message);
+size_t link1_options__pack
+                     (const Link1Options   *message,
+                      uint8_t             *out);
+size_t link1_options__pack_to_buffer
+                     (const Link1Options   *message,
+                      ProtobufCBuffer     *buffer);
+Link1Options *
+       link1_options__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   link1_options__free_unpacked
+                     (Link1Options *message,
+                      ProtobufCAllocator *allocator);
+/* Link1Data methods */
+void   link1_data__init
+                     (Link1Data         *message);
+size_t link1_data__get_packed_size
+                     (const Link1Data   *message);
+size_t link1_data__pack
+                     (const Link1Data   *message,
+                      uint8_t             *out);
+size_t link1_data__pack_to_buffer
+                     (const Link1Data   *message,
+                      ProtobufCBuffer     *buffer);
+Link1Data *
+       link1_data__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   link1_data__free_unpacked
+                     (Link1Data *message,
                       ProtobufCAllocator *allocator);
 /* --- per-message closures --- */
 
-typedef void (*AliveStatus_Closure)
-                 (const AliveStatus *message,
+typedef void (*MessageID_Closure)
+                 (const MessageID *message,
+                  void *closure_data);
+typedef void (*Link1Options_Closure)
+                 (const Link1Options *message,
+                  void *closure_data);
+typedef void (*Link1Data_Closure)
+                 (const Link1Data *message,
                   void *closure_data);
 
 /* --- services --- */
@@ -65,7 +138,10 @@ typedef void (*AliveStatus_Closure)
 
 /* --- descriptors --- */
 
-extern const ProtobufCMessageDescriptor alive_status__descriptor;
+extern const ProtobufCEnumDescriptor    message_type__descriptor;
+extern const ProtobufCMessageDescriptor message_id__descriptor;
+extern const ProtobufCMessageDescriptor link1_options__descriptor;
+extern const ProtobufCMessageDescriptor link1_data__descriptor;
 
 PROTOBUF_C__END_DECLS
 

@@ -7,100 +7,301 @@
 #endif
 
 #include "messenger.pb-c.h"
-void   alive_status__init
-                     (AliveStatus         *message)
+void   message_id__init
+                     (MessageID         *message)
 {
-  static const AliveStatus init_value = ALIVE_STATUS__INIT;
+  static const MessageID init_value = MESSAGE_ID__INIT;
   *message = init_value;
 }
-size_t alive_status__get_packed_size
-                     (const AliveStatus *message)
+size_t message_id__get_packed_size
+                     (const MessageID *message)
 {
-  assert(message->base.descriptor == &alive_status__descriptor);
+  assert(message->base.descriptor == &message_id__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t alive_status__pack
-                     (const AliveStatus *message,
+size_t message_id__pack
+                     (const MessageID *message,
                       uint8_t       *out)
 {
-  assert(message->base.descriptor == &alive_status__descriptor);
+  assert(message->base.descriptor == &message_id__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t alive_status__pack_to_buffer
-                     (const AliveStatus *message,
+size_t message_id__pack_to_buffer
+                     (const MessageID *message,
                       ProtobufCBuffer *buffer)
 {
-  assert(message->base.descriptor == &alive_status__descriptor);
+  assert(message->base.descriptor == &message_id__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-AliveStatus *
-       alive_status__unpack
+MessageID *
+       message_id__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (AliveStatus *)
-     protobuf_c_message_unpack (&alive_status__descriptor,
+  return (MessageID *)
+     protobuf_c_message_unpack (&message_id__descriptor,
                                 allocator, len, data);
 }
-void   alive_status__free_unpacked
-                     (AliveStatus *message,
+void   message_id__free_unpacked
+                     (MessageID *message,
                       ProtobufCAllocator *allocator)
 {
   if(!message)
     return;
-  assert(message->base.descriptor == &alive_status__descriptor);
+  assert(message->base.descriptor == &message_id__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-char alive_status__signage__default_value[] = "ESP";
-static const ProtobufCFieldDescriptor alive_status__field_descriptors[2] =
+void   link1_options__init
+                     (Link1Options         *message)
+{
+  static const Link1Options init_value = LINK1_OPTIONS__INIT;
+  *message = init_value;
+}
+size_t link1_options__get_packed_size
+                     (const Link1Options *message)
+{
+  assert(message->base.descriptor == &link1_options__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t link1_options__pack
+                     (const Link1Options *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &link1_options__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t link1_options__pack_to_buffer
+                     (const Link1Options *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &link1_options__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+Link1Options *
+       link1_options__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (Link1Options *)
+     protobuf_c_message_unpack (&link1_options__descriptor,
+                                allocator, len, data);
+}
+void   link1_options__free_unpacked
+                     (Link1Options *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &link1_options__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   link1_data__init
+                     (Link1Data         *message)
+{
+  static const Link1Data init_value = LINK1_DATA__INIT;
+  *message = init_value;
+}
+size_t link1_data__get_packed_size
+                     (const Link1Data *message)
+{
+  assert(message->base.descriptor == &link1_data__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t link1_data__pack
+                     (const Link1Data *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &link1_data__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t link1_data__pack_to_buffer
+                     (const Link1Data *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &link1_data__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+Link1Data *
+       link1_data__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (Link1Data *)
+     protobuf_c_message_unpack (&link1_data__descriptor,
+                                allocator, len, data);
+}
+void   link1_data__free_unpacked
+                     (Link1Data *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &link1_data__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+static const MessageType message_id__id__default_value = MESSAGE_TYPE__ALIVE_CHECK;
+static const ProtobufCFieldDescriptor message_id__field_descriptors[1] =
 {
   {
-    "data",
+    "id",
     1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_ENUM,
+    0,   /* quantifier_offset */
+    offsetof(MessageID, id),
+    &message_type__descriptor,
+    &message_id__id__default_value,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned message_id__field_indices_by_name[] = {
+  0,   /* field[0] = id */
+};
+static const ProtobufCIntRange message_id__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 1 }
+};
+const ProtobufCMessageDescriptor message_id__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "MessageID",
+  "MessageID",
+  "MessageID",
+  "",
+  sizeof(MessageID),
+  1,
+  message_id__field_descriptors,
+  message_id__field_indices_by_name,
+  1,  message_id__number_ranges,
+  (ProtobufCMessageInit) message_id__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor link1_options__field_descriptors[1] =
+{
+  {
+    "enable",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_BOOL,
+    0,   /* quantifier_offset */
+    offsetof(Link1Options, enable),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned link1_options__field_indices_by_name[] = {
+  0,   /* field[0] = enable */
+};
+static const ProtobufCIntRange link1_options__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 1 }
+};
+const ProtobufCMessageDescriptor link1_options__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "Link1_options",
+  "Link1Options",
+  "Link1Options",
+  "",
+  sizeof(Link1Options),
+  1,
+  link1_options__field_descriptors,
+  link1_options__field_indices_by_name,
+  1,  link1_options__number_ranges,
+  (ProtobufCMessageInit) link1_options__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const int32_t link1_data__sensor_data__default_value = 0;
+static const ProtobufCFieldDescriptor link1_data__field_descriptors[2] =
+{
+  {
+    "id",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_ENUM,
+    0,   /* quantifier_offset */
+    offsetof(Link1Data, id),
+    &message_type__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "sensor_data",
+    2,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
-    offsetof(AliveStatus, data),
+    offsetof(Link1Data, sensor_data),
     NULL,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "signage",
-    2,
-    PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_STRING,
-    0,   /* quantifier_offset */
-    offsetof(AliveStatus, signage),
-    NULL,
-    &alive_status__signage__default_value,
+    &link1_data__sensor_data__default_value,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned alive_status__field_indices_by_name[] = {
-  0,   /* field[0] = data */
-  1,   /* field[1] = signage */
+static const unsigned link1_data__field_indices_by_name[] = {
+  0,   /* field[0] = id */
+  1,   /* field[1] = sensor_data */
 };
-static const ProtobufCIntRange alive_status__number_ranges[1 + 1] =
+static const ProtobufCIntRange link1_data__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 2 }
 };
-const ProtobufCMessageDescriptor alive_status__descriptor =
+const ProtobufCMessageDescriptor link1_data__descriptor =
 {
   PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "aliveStatus",
-  "AliveStatus",
-  "AliveStatus",
+  "Link1_data",
+  "Link1Data",
+  "Link1Data",
   "",
-  sizeof(AliveStatus),
+  sizeof(Link1Data),
   2,
-  alive_status__field_descriptors,
-  alive_status__field_indices_by_name,
-  1,  alive_status__number_ranges,
-  (ProtobufCMessageInit) alive_status__init,
+  link1_data__field_descriptors,
+  link1_data__field_indices_by_name,
+  1,  link1_data__number_ranges,
+  (ProtobufCMessageInit) link1_data__init,
   NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCEnumValue message_type__enum_values_by_number[5] =
+{
+  { "ALIVE_CHECK", "MESSAGE_TYPE__ALIVE_CHECK", 0 },
+  { "LINK1_OPTIONS", "MESSAGE_TYPE__LINK1_OPTIONS", 1 },
+  { "LINK1_DATA", "MESSAGE_TYPE__LINK1_DATA", 2 },
+  { "LINK2_OPTIONS", "MESSAGE_TYPE__LINK2_OPTIONS", 3 },
+  { "LINK2_DATA", "MESSAGE_TYPE__LINK2_DATA", 4 },
+};
+static const ProtobufCIntRange message_type__value_ranges[] = {
+{0, 0},{0, 5}
+};
+static const ProtobufCEnumValueIndex message_type__enum_values_by_name[5] =
+{
+  { "ALIVE_CHECK", 0 },
+  { "LINK1_DATA", 2 },
+  { "LINK1_OPTIONS", 1 },
+  { "LINK2_DATA", 4 },
+  { "LINK2_OPTIONS", 3 },
+};
+const ProtobufCEnumDescriptor message_type__descriptor =
+{
+  PROTOBUF_C__ENUM_DESCRIPTOR_MAGIC,
+  "MessageType",
+  "MessageType",
+  "MessageType",
+  "",
+  5,
+  message_type__enum_values_by_number,
+  5,
+  message_type__enum_values_by_name,
+  1,
+  message_type__value_ranges,
+  NULL,NULL,NULL,NULL   /* reserved[1234] */
 };

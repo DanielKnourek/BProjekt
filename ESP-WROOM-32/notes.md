@@ -47,3 +47,29 @@ wsl --list -v
 ## How to initialize project
 
 - code-> RUN command -> ">ESP-IDF: New Project"
+
+### first time mount esp
+
+```ps1
+ usbipd.exe wsl attach --bus-id 1-3 
+```
+
+
+```gdb
+info breakpoints
+
+define userbtn
+    interrupt
+    shell timeout /t 1 /nobreak > nul
+    enable 5
+    continue
+    call set_flag(&Flags, FT_BTN1)
+    disable 5
+    continue
+end
+
+source userbtn.gdb
+
+```
+
+
