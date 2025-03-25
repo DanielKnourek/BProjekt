@@ -9,39 +9,90 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
+/* Enum definitions */
+typedef enum _MessageType {
+    MessageType_ALIVE_CHECK = 0,
+    MessageType_LINK1_OPTIONS = 1,
+    MessageType_LINK1_DATA = 2,
+    MessageType_LINK2_OPTIONS = 3,
+    MessageType_LINK2_DATA = 4
+} MessageType;
+
 /* Struct definitions */
-typedef struct _aliveStatus {
-    int32_t data;
-    pb_callback_t signage;
-} aliveStatus;
+typedef struct _MessageID {
+    MessageType id;
+} MessageID;
+
+typedef struct _Link1_options {
+    bool enable;
+} Link1_options;
+
+typedef struct _Link1_data {
+    MessageType id;
+    int32_t sensor_data;
+} Link1_data;
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/* Helper constants for enums */
+#define _MessageType_MIN MessageType_ALIVE_CHECK
+#define _MessageType_MAX MessageType_LINK2_DATA
+#define _MessageType_ARRAYSIZE ((MessageType)(MessageType_LINK2_DATA+1))
+
+#define MessageID_id_ENUMTYPE MessageType
+
+
+#define Link1_data_id_ENUMTYPE MessageType
+
+
 /* Initializer values for message structs */
-#define aliveStatus_init_default                 {0, {{NULL}, NULL}}
-#define aliveStatus_init_zero                    {0, {{NULL}, NULL}}
+#define MessageID_init_default                   {MessageType_ALIVE_CHECK}
+#define Link1_options_init_default               {0}
+#define Link1_data_init_default                  {_MessageType_MIN, 0}
+#define MessageID_init_zero                      {_MessageType_MIN}
+#define Link1_options_init_zero                  {0}
+#define Link1_data_init_zero                     {_MessageType_MIN, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
-#define aliveStatus_data_tag                     1
-#define aliveStatus_signage_tag                  2
+#define MessageID_id_tag                         1
+#define Link1_options_enable_tag                 1
+#define Link1_data_id_tag                        1
+#define Link1_data_sensor_data_tag               2
 
 /* Struct field encoding specification for nanopb */
-#define aliveStatus_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, INT32,    data,              1) \
-X(a, CALLBACK, REQUIRED, STRING,   signage,           2)
-#define aliveStatus_CALLBACK pb_default_field_callback
-#define aliveStatus_DEFAULT NULL
+#define MessageID_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, UENUM,    id,                1)
+#define MessageID_CALLBACK NULL
+#define MessageID_DEFAULT NULL
 
-extern const pb_msgdesc_t aliveStatus_msg;
+#define Link1_options_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, BOOL,     enable,            1)
+#define Link1_options_CALLBACK NULL
+#define Link1_options_DEFAULT NULL
+
+#define Link1_data_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, UENUM,    id,                1) \
+X(a, STATIC,   REQUIRED, INT32,    sensor_data,       2)
+#define Link1_data_CALLBACK NULL
+#define Link1_data_DEFAULT (const pb_byte_t*)"\x10\x00\x00"
+
+extern const pb_msgdesc_t MessageID_msg;
+extern const pb_msgdesc_t Link1_options_msg;
+extern const pb_msgdesc_t Link1_data_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
-#define aliveStatus_fields &aliveStatus_msg
+#define MessageID_fields &MessageID_msg
+#define Link1_options_fields &Link1_options_msg
+#define Link1_data_fields &Link1_data_msg
 
 /* Maximum encoded size of messages (where known) */
-/* aliveStatus_size depends on runtime parameters */
+#define Link1_data_size                          13
+#define Link1_options_size                       2
+#define MESSENGER_PB_H_MAX_SIZE                  Link1_data_size
+#define MessageID_size                           2
 
 #ifdef __cplusplus
 } /* extern "C" */

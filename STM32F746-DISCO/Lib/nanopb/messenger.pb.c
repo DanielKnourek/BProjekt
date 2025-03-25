@@ -6,7 +6,15 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
-PB_BIND(aliveStatus, aliveStatus, AUTO)
+PB_BIND(MessageID, MessageID, AUTO)
+
+
+PB_BIND(Link1_options, Link1_options, AUTO)
+
+
+PB_BIND(Link1_data, Link1_data, AUTO)
+
+
 
 
 

@@ -1,0 +1,22 @@
+// messenger version 0.0.3
+syntax = "proto2";
+
+enum MessageType {
+    ALIVE_CHECK = 0;
+    LINK1_OPTIONS = 1;
+    LINK1_DATA = 2;
+    LINK2_OPTIONS = 3;
+    LINK2_DATA = 4;
+}
+message MessageID {
+    required MessageType id = 1 [default = ALIVE_CHECK];
+}
+
+message Link1_options {
+    required bool enable = 1;
+}
+
+message Link1_data {
+    required MessageType id = 1;
+    required int32 sensor_data = 2 [default = 0];
+}
