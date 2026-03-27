@@ -55,41 +55,42 @@ void init(void) {
 void deserialize(uint8_t *data) {
 
     // deserialize pb
-    // read MessageID FIRST to know the type of message, then read the rest of the data accordingly
-    // MessageID msg_lencalc = MESSAGE_ID__INIT;
-    unsigned msg_id_len = message_id__get_packed_size(&(MessageID)MESSAGE_ID__INIT);
-    MessageID *msgID;
+    //  -- read MessageID FIRST to know the type of message, then read the rest of the data accordingly --
+    
+    MessageID *msg_id;
+    unsigned len_id1 = message_id__get_packed_size(&(MessageID)MESSAGE_ID__INIT);
 
-    msgID = message_id__unpack(NULL, msg_id_len, data);
-    if (msgID == NULL) {
+    msg_id = message_id__unpack(NULL, len_id1, data);
+    if (msg_id == NULL) {
         ESP_LOGE(TAG, "error unpacking incoming message_id__unpack");
         return;
     }
 
     // display the message's fields.
     ESP_LOGI(TAG, "deserialize: id=%d" PRIi32,
-             msgID->id);  // required field
+             msg_id->id);  // required field
 
     // Free the allocated deserialized buffer
-    message_id__free_unpacked(msgID, NULL);
+    message_id__free_unpacked(msg_id, NULL);
 
-    // Link1Data *msgdata1 = LINK1_DATA__INIT;
-    // unsigned len_data1;
-    // len_data1 = link1_data__get_packed_size(&msgdata1);
+    // -- read data1
 
-    // if (sizeof(data) > len_data1 + len) {
-    //     ESP_LOGI(TAG, "Would ovetflow buffer!");
-    //     return;
-    // }
-    // msgdata1 = link1_data__unpack(NULL, len_data1, data + len);
-    // // if (msgdata1 == NULL) {
-    // //     ESP_LOGE(TAG, "error unpacking incoming link1_data__unpack");
-    // //     return;
-    // // }
+    Link1Data *msg_data1;
+    unsigned len_data1 = link1_data__get_packed_size(&(MessageID)LINK1_DATA__INIT);
 
-    // // display the message's fields.
-    // ESP_LOGI(TAG, "deserialize data: id=%d; data:%d" PRIi32, msgdata1->id,
-    //          (int)msgdata1->sensor_data);
+    if (sizeof(data) > len_id1 + len_data1) {
+        ESP_LOGI(TAG, "Not enough data received to unpack Link1Data, expected at least %d bytes but got %d bytes", len_id1 + len_data1, sizeof(data));
+        return;
+    }
+    msg_data1 = link1_data__unpack(NULL, len_data1, data + len_id1);
+    if (msg_data1 == NULL) {
+        ESP_LOGE(TAG, "error unpacking incoming link1_data__unpack");
+        return;
+    }
+
+    // display the message's fields.
+    ESP_LOGI(TAG, "deserialize data: id=%d; data:%d" PRIi32, msg_data1->id,
+             (int)msg_data1->sensor_data);
 }
 static void rx_task(void *arg) {
     static const char *RX_TASK_TAG = "RX_TASK";
