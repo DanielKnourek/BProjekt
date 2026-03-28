@@ -269,7 +269,7 @@ int main(void) {
 			lastTick = currentTick;
 
 			//detected interrupt of BTN1 and set FT_Flag7 only for first occurrence BTN1 in span of 50ms
-			if (is_set(&Flags, FT_BTN1)) {
+			if (Flags.is_set(&Flags, FT_BTN1)) {
 				reset_flag(&Flags, FT_BTN1);
 				if (is_set(&Flags, FT_ACTION_USER)) {
 					reset_flag(&Flags, FT_ACTION_USER);
@@ -288,7 +288,7 @@ int main(void) {
 			pb_ostream_t stream = pb_ostream_from_buffer(tx_buffer,
 					sizeof(tx_buffer));
 
-			msgInit.id = MessageType_ALIVE_CHECK;
+			msgInit.id = MessageType_LINK1_DATA;
 
 			bool success = pb_encode(&stream, MessageID_fields, &msgInit);
 

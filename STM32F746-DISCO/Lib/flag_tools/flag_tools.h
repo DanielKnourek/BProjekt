@@ -13,9 +13,14 @@
 #include <stdint.h>
 
 /* Exported types ------------------------------------------------------------*/
-typedef struct {
-	 uint8_t set;
-} flag_set ;
+typedef struct flag_set
+{
+	uint8_t set;
+	// Function pointers for operations
+	void (*set_flag)(struct flag_set *flags, uint8_t flag_mask);
+	void (*reset_flag)(struct flag_set *flags, uint8_t flag_mask);
+	uint8_t (*is_set)(struct flag_set *flags, uint8_t flag_mask);
+} flag_set;
 
 /* Exported constants --------------------------------------------------------*/
 #define FT_Flag0 ((uint8_t)1 << 0)
@@ -29,7 +34,7 @@ typedef struct {
 
 /* Exported functions --------------------------------------------------------*/
 
-//flag_set init_flags();
+// flag_set init_flags();
 void init_flags(flag_set *flags);
 
 void set_flag(flag_set *flags, uint8_t flag_mask);
