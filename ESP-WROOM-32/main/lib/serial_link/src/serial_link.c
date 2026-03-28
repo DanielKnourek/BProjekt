@@ -202,9 +202,9 @@ static void rx_task(void* arg) {
             ESP_LOGI(RX_TASK_TAG, "Read %d bytes: '%s' |1ca5c|", rxBytes, (char*)data);
             ESP_LOG_BUFFER_HEXDUMP(RX_TASK_TAG, data, rxBytes, ESP_LOG_INFO);
 
-            test_pack();
+            // test_pack();
             
-            // deserialize(data, rxBytes);
+            deserialize(data, rxBytes);
             
         }
     }
