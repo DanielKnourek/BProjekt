@@ -9,90 +9,131 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
-/* Enum definitions */
-typedef enum _MessageType {
-    MessageType_ALIVE_CHECK = 0,
-    MessageType_LINK1_OPTIONS = 1,
-    MessageType_LINK1_DATA = 2,
-    MessageType_LINK2_OPTIONS = 3,
-    MessageType_LINK2_DATA = 4
-} MessageType;
-
 /* Struct definitions */
-typedef struct _MessageID {
-    MessageType id;
-} MessageID;
+typedef struct _FrameHeader {
+    uint32_t next_message_size;
+    uint32_t crc;
+} FrameHeader;
 
-typedef struct _Link1_options {
+typedef struct _Test1Data {
+    int32_t test_data;
+} Test1Data;
+
+typedef struct _Test1Options {
     bool enable;
-} Link1_options;
+} Test1Options;
 
-typedef struct _Link1_data {
-    MessageType id;
-    int32_t sensor_data;
-} Link1_data;
+typedef struct _Sensor1Data {
+    int32_t sensor1_data;
+} Sensor1Data;
+
+typedef struct _Sensor1Options {
+    bool enable;
+} Sensor1Options;
+
+typedef struct _FramePayload {
+    pb_size_t which_payload;
+    union {
+        Test1Data test1_data;
+        Test1Options test1_options;
+        Sensor1Data sensor1_data;
+        Sensor1Options sensor1_options;
+    } payload;
+} FramePayload;
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Helper constants for enums */
-#define _MessageType_MIN MessageType_ALIVE_CHECK
-#define _MessageType_MAX MessageType_LINK2_DATA
-#define _MessageType_ARRAYSIZE ((MessageType)(MessageType_LINK2_DATA+1))
-
-#define MessageID_id_ENUMTYPE MessageType
-
-
-#define Link1_data_id_ENUMTYPE MessageType
-
-
 /* Initializer values for message structs */
-#define MessageID_init_default                   {MessageType_ALIVE_CHECK}
-#define Link1_options_init_default               {0}
-#define Link1_data_init_default                  {_MessageType_MIN, 0}
-#define MessageID_init_zero                      {_MessageType_MIN}
-#define Link1_options_init_zero                  {0}
-#define Link1_data_init_zero                     {_MessageType_MIN, 0}
+#define FrameHeader_init_default                 {0, 0}
+#define Test1Data_init_default                   {0}
+#define Test1Options_init_default                {0}
+#define Sensor1Data_init_default                 {0}
+#define Sensor1Options_init_default              {0}
+#define FramePayload_init_default                {0, {Test1Data_init_default}}
+#define FrameHeader_init_zero                    {0, 0}
+#define Test1Data_init_zero                      {0}
+#define Test1Options_init_zero                   {0}
+#define Sensor1Data_init_zero                    {0}
+#define Sensor1Options_init_zero                 {0}
+#define FramePayload_init_zero                   {0, {Test1Data_init_zero}}
 
 /* Field tags (for use in manual encoding/decoding) */
-#define MessageID_id_tag                         1
-#define Link1_options_enable_tag                 1
-#define Link1_data_id_tag                        1
-#define Link1_data_sensor_data_tag               2
+#define FrameHeader_next_message_size_tag        1
+#define FrameHeader_crc_tag                      2
+#define Test1Data_test_data_tag                  1
+#define Test1Options_enable_tag                  1
+#define Sensor1Data_sensor1_data_tag             1
+#define Sensor1Options_enable_tag                1
+#define FramePayload_test1_data_tag              1
+#define FramePayload_test1_options_tag           2
+#define FramePayload_sensor1_data_tag            3
+#define FramePayload_sensor1_options_tag         4
 
 /* Struct field encoding specification for nanopb */
-#define MessageID_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, UENUM,    id,                1)
-#define MessageID_CALLBACK NULL
-#define MessageID_DEFAULT NULL
+#define FrameHeader_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, FIXED32,  next_message_size,   1) \
+X(a, STATIC,   REQUIRED, FIXED32,  crc,               2)
+#define FrameHeader_CALLBACK NULL
+#define FrameHeader_DEFAULT NULL
 
-#define Link1_options_FIELDLIST(X, a) \
+#define Test1Data_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, INT32,    test_data,         1)
+#define Test1Data_CALLBACK NULL
+#define Test1Data_DEFAULT NULL
+
+#define Test1Options_FIELDLIST(X, a) \
 X(a, STATIC,   REQUIRED, BOOL,     enable,            1)
-#define Link1_options_CALLBACK NULL
-#define Link1_options_DEFAULT NULL
+#define Test1Options_CALLBACK NULL
+#define Test1Options_DEFAULT NULL
 
-#define Link1_data_FIELDLIST(X, a) \
-X(a, STATIC,   REQUIRED, UENUM,    id,                1) \
-X(a, STATIC,   REQUIRED, INT32,    sensor_data,       2)
-#define Link1_data_CALLBACK NULL
-#define Link1_data_DEFAULT (const pb_byte_t*)"\x10\x00\x00"
+#define Sensor1Data_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, INT32,    sensor1_data,      1)
+#define Sensor1Data_CALLBACK NULL
+#define Sensor1Data_DEFAULT NULL
 
-extern const pb_msgdesc_t MessageID_msg;
-extern const pb_msgdesc_t Link1_options_msg;
-extern const pb_msgdesc_t Link1_data_msg;
+#define Sensor1Options_FIELDLIST(X, a) \
+X(a, STATIC,   REQUIRED, BOOL,     enable,            1)
+#define Sensor1Options_CALLBACK NULL
+#define Sensor1Options_DEFAULT NULL
+
+#define FramePayload_FIELDLIST(X, a) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (payload,test1_data,payload.test1_data),   1) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (payload,test1_options,payload.test1_options),   2) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (payload,sensor1_data,payload.sensor1_data),   3) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (payload,sensor1_options,payload.sensor1_options),   4)
+#define FramePayload_CALLBACK NULL
+#define FramePayload_DEFAULT NULL
+#define FramePayload_payload_test1_data_MSGTYPE Test1Data
+#define FramePayload_payload_test1_options_MSGTYPE Test1Options
+#define FramePayload_payload_sensor1_data_MSGTYPE Sensor1Data
+#define FramePayload_payload_sensor1_options_MSGTYPE Sensor1Options
+
+extern const pb_msgdesc_t FrameHeader_msg;
+extern const pb_msgdesc_t Test1Data_msg;
+extern const pb_msgdesc_t Test1Options_msg;
+extern const pb_msgdesc_t Sensor1Data_msg;
+extern const pb_msgdesc_t Sensor1Options_msg;
+extern const pb_msgdesc_t FramePayload_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
-#define MessageID_fields &MessageID_msg
-#define Link1_options_fields &Link1_options_msg
-#define Link1_data_fields &Link1_data_msg
+#define FrameHeader_fields &FrameHeader_msg
+#define Test1Data_fields &Test1Data_msg
+#define Test1Options_fields &Test1Options_msg
+#define Sensor1Data_fields &Sensor1Data_msg
+#define Sensor1Options_fields &Sensor1Options_msg
+#define FramePayload_fields &FramePayload_msg
 
 /* Maximum encoded size of messages (where known) */
-#define Link1_data_size                          13
-#define Link1_options_size                       2
-#define MESSENGER_PB_H_MAX_SIZE                  Link1_data_size
-#define MessageID_size                           2
+#define FrameHeader_size                         10
+#define FramePayload_size                        13
+#define MESSENGER_PB_H_MAX_SIZE                  FramePayload_size
+#define Sensor1Data_size                         11
+#define Sensor1Options_size                      2
+#define Test1Data_size                           11
+#define Test1Options_size                        2
 
 #ifdef __cplusplus
 } /* extern "C" */

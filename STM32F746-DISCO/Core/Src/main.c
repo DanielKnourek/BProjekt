@@ -281,27 +281,34 @@ int main(void) {
 		if (is_set(&Flags, FT_ACTION_USER)) {
 			reset_flag(&Flags, FT_ACTION_USER);
 
-			uint8_t tx_buffer[128] = {0};
+			uint8_t tx_buffer[128] = { 0 };
+			/* TRANSMIT MESSAGE BEGIN */
 
-			//encode MessageID
-			MessageID msgInit = MessageID_init_zero;
+			Test1Data payload_data1 = Test1Data_init_zero;
+			payload_data1.test_data = currentTick % 17;
+
+			FramePayload payload = FramePayload_init_zero;
+
+			payload.payload.test1_data = payload_data1;
+			payload.which_payload = FramePayload_test1_data_tag;
+
+			size_t payload_length = 0;
+			pb_get_encoded_size(&payload_length, FramePayload_fields, &payload);
+
+			FrameHeader header = FrameHeader_init_zero;
+			header.next_message_size = payload_length;
+			header.crc = 0x12345;
+
 			pb_ostream_t stream = pb_ostream_from_buffer(tx_buffer,
 					sizeof(tx_buffer));
 
-			msgInit.id = MessageType_LINK1_DATA;
+			bool success = pb_encode(&stream, FrameHeader_fields, &header);
 
-			bool success = pb_encode(&stream, MessageID_fields, &msgInit);
+			if (success) {
+				success = pb_encode(&stream, FramePayload_fields, &payload);
+			}
 
-			//encode Message_data1
-			Link1_data msg_data1 = Link1_data_init_zero;
-//			pb_ostream_t stream_data = pb_ostream_from_buffer(tx_buffer,
-//					sizeof(tx_buffer));
-
-			msg_data1.id = MessageType_LINK1_DATA;
-			msg_data1.sensor_data = currentTick % 17;
-
-			bool success_data = pb_encode(&stream, Link1_data_fields, &msg_data1);
-//			bool success_data = pb_encode(&stream_data, Link1_data_fields, &msg_data1);
+			/* TRANSMIT MESSAGE END */
 
 			if (success) {
 				HAL_UART_Transmit_DMA(&huart6, (uint8_t*) tx_buffer,

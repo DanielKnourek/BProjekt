@@ -6,15 +6,22 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
-PB_BIND(MessageID, MessageID, AUTO)
+PB_BIND(FrameHeader, FrameHeader, AUTO)
 
 
-PB_BIND(Link1_options, Link1_options, AUTO)
+PB_BIND(Test1Data, Test1Data, AUTO)
 
 
-PB_BIND(Link1_data, Link1_data, AUTO)
+PB_BIND(Test1Options, Test1Options, AUTO)
 
 
+PB_BIND(Sensor1Data, Sensor1Data, AUTO)
+
+
+PB_BIND(Sensor1Options, Sensor1Options, AUTO)
+
+
+PB_BIND(FramePayload, FramePayload, AUTO)
 
 
 
