@@ -15,122 +15,234 @@ PROTOBUF_C__BEGIN_DECLS
 #endif
 
 
-typedef struct _MessageID MessageID;
-typedef struct _Link1Options Link1Options;
-typedef struct _Link1Data Link1Data;
+typedef struct _FrameHeader FrameHeader;
+typedef struct _Test1Data Test1Data;
+typedef struct _Test1Options Test1Options;
+typedef struct _Sensor1Data Sensor1Data;
+typedef struct _Sensor1Options Sensor1Options;
+typedef struct _FramePayload FramePayload;
 
 
 /* --- enums --- */
 
-typedef enum _MessageType {
-  MESSAGE_TYPE__ALIVE_CHECK = 0,
-  MESSAGE_TYPE__LINK1_OPTIONS = 1,
-  MESSAGE_TYPE__LINK1_DATA = 2,
-  MESSAGE_TYPE__LINK2_OPTIONS = 3,
-  MESSAGE_TYPE__LINK2_DATA = 4
-    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(MESSAGE_TYPE)
-} MessageType;
 
 /* --- messages --- */
 
-struct  _MessageID
+struct  _FrameHeader
 {
   ProtobufCMessage base;
-  MessageType id;
+  uint32_t next_message_size;
+  uint32_t crc;
 };
-#define MESSAGE_ID__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&message_id__descriptor) \
-    , MESSAGE_TYPE__ALIVE_CHECK }
+#define FRAME_HEADER__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&frame_header__descriptor) \
+    , 0, 0 }
 
 
-struct  _Link1Options
+/*
+ * Intermediate data structures
+ */
+struct  _Test1Data
+{
+  ProtobufCMessage base;
+  int32_t test_data;
+};
+#define TEST1_DATA__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&test1_data__descriptor) \
+    , 0 }
+
+
+struct  _Test1Options
 {
   ProtobufCMessage base;
   protobuf_c_boolean enable;
 };
-#define LINK1_OPTIONS__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&link1_options__descriptor) \
+#define TEST1_OPTIONS__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&test1_options__descriptor) \
     , 0 }
 
 
-struct  _Link1Data
+struct  _Sensor1Data
 {
   ProtobufCMessage base;
-  MessageType id;
-  int32_t sensor_data;
+  int32_t sensor1_data;
 };
-#define LINK1_DATA__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&link1_data__descriptor) \
-    , MESSAGE_TYPE__ALIVE_CHECK, 0 }
+#define SENSOR1_DATA__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&sensor1_data__descriptor) \
+    , 0 }
 
 
-/* MessageID methods */
-void   message_id__init
-                     (MessageID         *message);
-size_t message_id__get_packed_size
-                     (const MessageID   *message);
-size_t message_id__pack
-                     (const MessageID   *message,
+struct  _Sensor1Options
+{
+  ProtobufCMessage base;
+  protobuf_c_boolean enable;
+};
+#define SENSOR1_OPTIONS__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&sensor1_options__descriptor) \
+    , 0 }
+
+
+typedef enum {
+  FRAME_PAYLOAD__PAYLOAD__NOT_SET = 0,
+  FRAME_PAYLOAD__PAYLOAD_TEST1_DATA = 1,
+  FRAME_PAYLOAD__PAYLOAD_TEST1_OPTIONS = 2,
+  FRAME_PAYLOAD__PAYLOAD_SENSOR1_DATA = 3,
+  FRAME_PAYLOAD__PAYLOAD_SENSOR1_OPTIONS = 4
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(FRAME_PAYLOAD__PAYLOAD)
+} FramePayload__PayloadCase;
+
+/*
+ * The main payload envelope
+ */
+struct  _FramePayload
+{
+  ProtobufCMessage base;
+  FramePayload__PayloadCase payload_case;
+  union {
+    Test1Data *test1_data;
+    Test1Options *test1_options;
+    Sensor1Data *sensor1_data;
+    Sensor1Options *sensor1_options;
+  };
+};
+#define FRAME_PAYLOAD__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&frame_payload__descriptor) \
+    , FRAME_PAYLOAD__PAYLOAD__NOT_SET, {0} }
+
+
+/* FrameHeader methods */
+void   frame_header__init
+                     (FrameHeader         *message);
+size_t frame_header__get_packed_size
+                     (const FrameHeader   *message);
+size_t frame_header__pack
+                     (const FrameHeader   *message,
                       uint8_t             *out);
-size_t message_id__pack_to_buffer
-                     (const MessageID   *message,
+size_t frame_header__pack_to_buffer
+                     (const FrameHeader   *message,
                       ProtobufCBuffer     *buffer);
-MessageID *
-       message_id__unpack
+FrameHeader *
+       frame_header__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   message_id__free_unpacked
-                     (MessageID *message,
+void   frame_header__free_unpacked
+                     (FrameHeader *message,
                       ProtobufCAllocator *allocator);
-/* Link1Options methods */
-void   link1_options__init
-                     (Link1Options         *message);
-size_t link1_options__get_packed_size
-                     (const Link1Options   *message);
-size_t link1_options__pack
-                     (const Link1Options   *message,
+/* Test1Data methods */
+void   test1_data__init
+                     (Test1Data         *message);
+size_t test1_data__get_packed_size
+                     (const Test1Data   *message);
+size_t test1_data__pack
+                     (const Test1Data   *message,
                       uint8_t             *out);
-size_t link1_options__pack_to_buffer
-                     (const Link1Options   *message,
+size_t test1_data__pack_to_buffer
+                     (const Test1Data   *message,
                       ProtobufCBuffer     *buffer);
-Link1Options *
-       link1_options__unpack
+Test1Data *
+       test1_data__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   link1_options__free_unpacked
-                     (Link1Options *message,
+void   test1_data__free_unpacked
+                     (Test1Data *message,
                       ProtobufCAllocator *allocator);
-/* Link1Data methods */
-void   link1_data__init
-                     (Link1Data         *message);
-size_t link1_data__get_packed_size
-                     (const Link1Data   *message);
-size_t link1_data__pack
-                     (const Link1Data   *message,
+/* Test1Options methods */
+void   test1_options__init
+                     (Test1Options         *message);
+size_t test1_options__get_packed_size
+                     (const Test1Options   *message);
+size_t test1_options__pack
+                     (const Test1Options   *message,
                       uint8_t             *out);
-size_t link1_data__pack_to_buffer
-                     (const Link1Data   *message,
+size_t test1_options__pack_to_buffer
+                     (const Test1Options   *message,
                       ProtobufCBuffer     *buffer);
-Link1Data *
-       link1_data__unpack
+Test1Options *
+       test1_options__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   link1_data__free_unpacked
-                     (Link1Data *message,
+void   test1_options__free_unpacked
+                     (Test1Options *message,
+                      ProtobufCAllocator *allocator);
+/* Sensor1Data methods */
+void   sensor1_data__init
+                     (Sensor1Data         *message);
+size_t sensor1_data__get_packed_size
+                     (const Sensor1Data   *message);
+size_t sensor1_data__pack
+                     (const Sensor1Data   *message,
+                      uint8_t             *out);
+size_t sensor1_data__pack_to_buffer
+                     (const Sensor1Data   *message,
+                      ProtobufCBuffer     *buffer);
+Sensor1Data *
+       sensor1_data__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   sensor1_data__free_unpacked
+                     (Sensor1Data *message,
+                      ProtobufCAllocator *allocator);
+/* Sensor1Options methods */
+void   sensor1_options__init
+                     (Sensor1Options         *message);
+size_t sensor1_options__get_packed_size
+                     (const Sensor1Options   *message);
+size_t sensor1_options__pack
+                     (const Sensor1Options   *message,
+                      uint8_t             *out);
+size_t sensor1_options__pack_to_buffer
+                     (const Sensor1Options   *message,
+                      ProtobufCBuffer     *buffer);
+Sensor1Options *
+       sensor1_options__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   sensor1_options__free_unpacked
+                     (Sensor1Options *message,
+                      ProtobufCAllocator *allocator);
+/* FramePayload methods */
+void   frame_payload__init
+                     (FramePayload         *message);
+size_t frame_payload__get_packed_size
+                     (const FramePayload   *message);
+size_t frame_payload__pack
+                     (const FramePayload   *message,
+                      uint8_t             *out);
+size_t frame_payload__pack_to_buffer
+                     (const FramePayload   *message,
+                      ProtobufCBuffer     *buffer);
+FramePayload *
+       frame_payload__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   frame_payload__free_unpacked
+                     (FramePayload *message,
                       ProtobufCAllocator *allocator);
 /* --- per-message closures --- */
 
-typedef void (*MessageID_Closure)
-                 (const MessageID *message,
+typedef void (*FrameHeader_Closure)
+                 (const FrameHeader *message,
                   void *closure_data);
-typedef void (*Link1Options_Closure)
-                 (const Link1Options *message,
+typedef void (*Test1Data_Closure)
+                 (const Test1Data *message,
                   void *closure_data);
-typedef void (*Link1Data_Closure)
-                 (const Link1Data *message,
+typedef void (*Test1Options_Closure)
+                 (const Test1Options *message,
+                  void *closure_data);
+typedef void (*Sensor1Data_Closure)
+                 (const Sensor1Data *message,
+                  void *closure_data);
+typedef void (*Sensor1Options_Closure)
+                 (const Sensor1Options *message,
+                  void *closure_data);
+typedef void (*FramePayload_Closure)
+                 (const FramePayload *message,
                   void *closure_data);
 
 /* --- services --- */
@@ -138,10 +250,12 @@ typedef void (*Link1Data_Closure)
 
 /* --- descriptors --- */
 
-extern const ProtobufCEnumDescriptor    message_type__descriptor;
-extern const ProtobufCMessageDescriptor message_id__descriptor;
-extern const ProtobufCMessageDescriptor link1_options__descriptor;
-extern const ProtobufCMessageDescriptor link1_data__descriptor;
+extern const ProtobufCMessageDescriptor frame_header__descriptor;
+extern const ProtobufCMessageDescriptor test1_data__descriptor;
+extern const ProtobufCMessageDescriptor test1_options__descriptor;
+extern const ProtobufCMessageDescriptor sensor1_data__descriptor;
+extern const ProtobufCMessageDescriptor sensor1_options__descriptor;
+extern const ProtobufCMessageDescriptor frame_payload__descriptor;
 
 PROTOBUF_C__END_DECLS
 

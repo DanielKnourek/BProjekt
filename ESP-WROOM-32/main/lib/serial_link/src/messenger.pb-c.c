@@ -7,181 +7,366 @@
 #endif
 
 #include "messenger.pb-c.h"
-void   message_id__init
-                     (MessageID         *message)
+void   frame_header__init
+                     (FrameHeader         *message)
 {
-  static const MessageID init_value = MESSAGE_ID__INIT;
+  static const FrameHeader init_value = FRAME_HEADER__INIT;
   *message = init_value;
 }
-size_t message_id__get_packed_size
-                     (const MessageID *message)
+size_t frame_header__get_packed_size
+                     (const FrameHeader *message)
 {
-  assert(message->base.descriptor == &message_id__descriptor);
+  assert(message->base.descriptor == &frame_header__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t message_id__pack
-                     (const MessageID *message,
+size_t frame_header__pack
+                     (const FrameHeader *message,
                       uint8_t       *out)
 {
-  assert(message->base.descriptor == &message_id__descriptor);
+  assert(message->base.descriptor == &frame_header__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t message_id__pack_to_buffer
-                     (const MessageID *message,
+size_t frame_header__pack_to_buffer
+                     (const FrameHeader *message,
                       ProtobufCBuffer *buffer)
 {
-  assert(message->base.descriptor == &message_id__descriptor);
+  assert(message->base.descriptor == &frame_header__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-MessageID *
-       message_id__unpack
+FrameHeader *
+       frame_header__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (MessageID *)
-     protobuf_c_message_unpack (&message_id__descriptor,
+  return (FrameHeader *)
+     protobuf_c_message_unpack (&frame_header__descriptor,
                                 allocator, len, data);
 }
-void   message_id__free_unpacked
-                     (MessageID *message,
+void   frame_header__free_unpacked
+                     (FrameHeader *message,
                       ProtobufCAllocator *allocator)
 {
   if(!message)
     return;
-  assert(message->base.descriptor == &message_id__descriptor);
+  assert(message->base.descriptor == &frame_header__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   link1_options__init
-                     (Link1Options         *message)
+void   test1_data__init
+                     (Test1Data         *message)
 {
-  static const Link1Options init_value = LINK1_OPTIONS__INIT;
+  static const Test1Data init_value = TEST1_DATA__INIT;
   *message = init_value;
 }
-size_t link1_options__get_packed_size
-                     (const Link1Options *message)
+size_t test1_data__get_packed_size
+                     (const Test1Data *message)
 {
-  assert(message->base.descriptor == &link1_options__descriptor);
+  assert(message->base.descriptor == &test1_data__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t link1_options__pack
-                     (const Link1Options *message,
+size_t test1_data__pack
+                     (const Test1Data *message,
                       uint8_t       *out)
 {
-  assert(message->base.descriptor == &link1_options__descriptor);
+  assert(message->base.descriptor == &test1_data__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t link1_options__pack_to_buffer
-                     (const Link1Options *message,
+size_t test1_data__pack_to_buffer
+                     (const Test1Data *message,
                       ProtobufCBuffer *buffer)
 {
-  assert(message->base.descriptor == &link1_options__descriptor);
+  assert(message->base.descriptor == &test1_data__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-Link1Options *
-       link1_options__unpack
+Test1Data *
+       test1_data__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (Link1Options *)
-     protobuf_c_message_unpack (&link1_options__descriptor,
+  return (Test1Data *)
+     protobuf_c_message_unpack (&test1_data__descriptor,
                                 allocator, len, data);
 }
-void   link1_options__free_unpacked
-                     (Link1Options *message,
+void   test1_data__free_unpacked
+                     (Test1Data *message,
                       ProtobufCAllocator *allocator)
 {
   if(!message)
     return;
-  assert(message->base.descriptor == &link1_options__descriptor);
+  assert(message->base.descriptor == &test1_data__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   link1_data__init
-                     (Link1Data         *message)
+void   test1_options__init
+                     (Test1Options         *message)
 {
-  static const Link1Data init_value = LINK1_DATA__INIT;
+  static const Test1Options init_value = TEST1_OPTIONS__INIT;
   *message = init_value;
 }
-size_t link1_data__get_packed_size
-                     (const Link1Data *message)
+size_t test1_options__get_packed_size
+                     (const Test1Options *message)
 {
-  assert(message->base.descriptor == &link1_data__descriptor);
+  assert(message->base.descriptor == &test1_options__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t link1_data__pack
-                     (const Link1Data *message,
+size_t test1_options__pack
+                     (const Test1Options *message,
                       uint8_t       *out)
 {
-  assert(message->base.descriptor == &link1_data__descriptor);
+  assert(message->base.descriptor == &test1_options__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t link1_data__pack_to_buffer
-                     (const Link1Data *message,
+size_t test1_options__pack_to_buffer
+                     (const Test1Options *message,
                       ProtobufCBuffer *buffer)
 {
-  assert(message->base.descriptor == &link1_data__descriptor);
+  assert(message->base.descriptor == &test1_options__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-Link1Data *
-       link1_data__unpack
+Test1Options *
+       test1_options__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (Link1Data *)
-     protobuf_c_message_unpack (&link1_data__descriptor,
+  return (Test1Options *)
+     protobuf_c_message_unpack (&test1_options__descriptor,
                                 allocator, len, data);
 }
-void   link1_data__free_unpacked
-                     (Link1Data *message,
+void   test1_options__free_unpacked
+                     (Test1Options *message,
                       ProtobufCAllocator *allocator)
 {
   if(!message)
     return;
-  assert(message->base.descriptor == &link1_data__descriptor);
+  assert(message->base.descriptor == &test1_options__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-static const MessageType message_id__id__default_value = MESSAGE_TYPE__ALIVE_CHECK;
-static const ProtobufCFieldDescriptor message_id__field_descriptors[1] =
+void   sensor1_data__init
+                     (Sensor1Data         *message)
+{
+  static const Sensor1Data init_value = SENSOR1_DATA__INIT;
+  *message = init_value;
+}
+size_t sensor1_data__get_packed_size
+                     (const Sensor1Data *message)
+{
+  assert(message->base.descriptor == &sensor1_data__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t sensor1_data__pack
+                     (const Sensor1Data *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &sensor1_data__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t sensor1_data__pack_to_buffer
+                     (const Sensor1Data *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &sensor1_data__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+Sensor1Data *
+       sensor1_data__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (Sensor1Data *)
+     protobuf_c_message_unpack (&sensor1_data__descriptor,
+                                allocator, len, data);
+}
+void   sensor1_data__free_unpacked
+                     (Sensor1Data *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &sensor1_data__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   sensor1_options__init
+                     (Sensor1Options         *message)
+{
+  static const Sensor1Options init_value = SENSOR1_OPTIONS__INIT;
+  *message = init_value;
+}
+size_t sensor1_options__get_packed_size
+                     (const Sensor1Options *message)
+{
+  assert(message->base.descriptor == &sensor1_options__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t sensor1_options__pack
+                     (const Sensor1Options *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &sensor1_options__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t sensor1_options__pack_to_buffer
+                     (const Sensor1Options *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &sensor1_options__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+Sensor1Options *
+       sensor1_options__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (Sensor1Options *)
+     protobuf_c_message_unpack (&sensor1_options__descriptor,
+                                allocator, len, data);
+}
+void   sensor1_options__free_unpacked
+                     (Sensor1Options *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &sensor1_options__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   frame_payload__init
+                     (FramePayload         *message)
+{
+  static const FramePayload init_value = FRAME_PAYLOAD__INIT;
+  *message = init_value;
+}
+size_t frame_payload__get_packed_size
+                     (const FramePayload *message)
+{
+  assert(message->base.descriptor == &frame_payload__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t frame_payload__pack
+                     (const FramePayload *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &frame_payload__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t frame_payload__pack_to_buffer
+                     (const FramePayload *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &frame_payload__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+FramePayload *
+       frame_payload__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (FramePayload *)
+     protobuf_c_message_unpack (&frame_payload__descriptor,
+                                allocator, len, data);
+}
+void   frame_payload__free_unpacked
+                     (FramePayload *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &frame_payload__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+static const ProtobufCFieldDescriptor frame_header__field_descriptors[2] =
 {
   {
-    "id",
+    "next_message_size",
     1,
     PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_ENUM,
+    PROTOBUF_C_TYPE_FIXED32,
     0,   /* quantifier_offset */
-    offsetof(MessageID, id),
-    &message_type__descriptor,
-    &message_id__id__default_value,
+    offsetof(FrameHeader, next_message_size),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "crc",
+    2,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_FIXED32,
+    0,   /* quantifier_offset */
+    offsetof(FrameHeader, crc),
+    NULL,
+    NULL,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned message_id__field_indices_by_name[] = {
-  0,   /* field[0] = id */
+static const unsigned frame_header__field_indices_by_name[] = {
+  1,   /* field[1] = crc */
+  0,   /* field[0] = next_message_size */
 };
-static const ProtobufCIntRange message_id__number_ranges[1 + 1] =
+static const ProtobufCIntRange frame_header__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 2 }
+};
+const ProtobufCMessageDescriptor frame_header__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "FrameHeader",
+  "FrameHeader",
+  "FrameHeader",
+  "",
+  sizeof(FrameHeader),
+  2,
+  frame_header__field_descriptors,
+  frame_header__field_indices_by_name,
+  1,  frame_header__number_ranges,
+  (ProtobufCMessageInit) frame_header__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor test1_data__field_descriptors[1] =
+{
+  {
+    "test_data",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(Test1Data, test_data),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned test1_data__field_indices_by_name[] = {
+  0,   /* field[0] = test_data */
+};
+static const ProtobufCIntRange test1_data__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 1 }
 };
-const ProtobufCMessageDescriptor message_id__descriptor =
+const ProtobufCMessageDescriptor test1_data__descriptor =
 {
   PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "MessageID",
-  "MessageID",
-  "MessageID",
+  "Test1Data",
+  "Test1Data",
+  "Test1Data",
   "",
-  sizeof(MessageID),
+  sizeof(Test1Data),
   1,
-  message_id__field_descriptors,
-  message_id__field_indices_by_name,
-  1,  message_id__number_ranges,
-  (ProtobufCMessageInit) message_id__init,
+  test1_data__field_descriptors,
+  test1_data__field_indices_by_name,
+  1,  test1_data__number_ranges,
+  (ProtobufCMessageInit) test1_data__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor link1_options__field_descriptors[1] =
+static const ProtobufCFieldDescriptor test1_options__field_descriptors[1] =
 {
   {
     "enable",
@@ -189,119 +374,186 @@ static const ProtobufCFieldDescriptor link1_options__field_descriptors[1] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_BOOL,
     0,   /* quantifier_offset */
-    offsetof(Link1Options, enable),
+    offsetof(Test1Options, enable),
     NULL,
     NULL,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned link1_options__field_indices_by_name[] = {
+static const unsigned test1_options__field_indices_by_name[] = {
   0,   /* field[0] = enable */
 };
-static const ProtobufCIntRange link1_options__number_ranges[1 + 1] =
+static const ProtobufCIntRange test1_options__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 1 }
 };
-const ProtobufCMessageDescriptor link1_options__descriptor =
+const ProtobufCMessageDescriptor test1_options__descriptor =
 {
   PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "Link1_options",
-  "Link1Options",
-  "Link1Options",
+  "Test1Options",
+  "Test1Options",
+  "Test1Options",
   "",
-  sizeof(Link1Options),
+  sizeof(Test1Options),
   1,
-  link1_options__field_descriptors,
-  link1_options__field_indices_by_name,
-  1,  link1_options__number_ranges,
-  (ProtobufCMessageInit) link1_options__init,
+  test1_options__field_descriptors,
+  test1_options__field_indices_by_name,
+  1,  test1_options__number_ranges,
+  (ProtobufCMessageInit) test1_options__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const int32_t link1_data__sensor_data__default_value = 0;
-static const ProtobufCFieldDescriptor link1_data__field_descriptors[2] =
+static const ProtobufCFieldDescriptor sensor1_data__field_descriptors[1] =
 {
   {
-    "id",
+    "sensor1_data",
     1,
-    PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_ENUM,
-    0,   /* quantifier_offset */
-    offsetof(Link1Data, id),
-    &message_type__descriptor,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "sensor_data",
-    2,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
-    offsetof(Link1Data, sensor_data),
+    offsetof(Sensor1Data, sensor1_data),
     NULL,
-    &link1_data__sensor_data__default_value,
+    NULL,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned link1_data__field_indices_by_name[] = {
-  0,   /* field[0] = id */
-  1,   /* field[1] = sensor_data */
+static const unsigned sensor1_data__field_indices_by_name[] = {
+  0,   /* field[0] = sensor1_data */
 };
-static const ProtobufCIntRange link1_data__number_ranges[1 + 1] =
+static const ProtobufCIntRange sensor1_data__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 2 }
+  { 0, 1 }
 };
-const ProtobufCMessageDescriptor link1_data__descriptor =
+const ProtobufCMessageDescriptor sensor1_data__descriptor =
 {
   PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "Link1_data",
-  "Link1Data",
-  "Link1Data",
+  "Sensor1Data",
+  "Sensor1Data",
+  "Sensor1Data",
   "",
-  sizeof(Link1Data),
-  2,
-  link1_data__field_descriptors,
-  link1_data__field_indices_by_name,
-  1,  link1_data__number_ranges,
-  (ProtobufCMessageInit) link1_data__init,
+  sizeof(Sensor1Data),
+  1,
+  sensor1_data__field_descriptors,
+  sensor1_data__field_indices_by_name,
+  1,  sensor1_data__number_ranges,
+  (ProtobufCMessageInit) sensor1_data__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCEnumValue message_type__enum_values_by_number[5] =
+static const ProtobufCFieldDescriptor sensor1_options__field_descriptors[1] =
 {
-  { "ALIVE_CHECK", "MESSAGE_TYPE__ALIVE_CHECK", 0 },
-  { "LINK1_OPTIONS", "MESSAGE_TYPE__LINK1_OPTIONS", 1 },
-  { "LINK1_DATA", "MESSAGE_TYPE__LINK1_DATA", 2 },
-  { "LINK2_OPTIONS", "MESSAGE_TYPE__LINK2_OPTIONS", 3 },
-  { "LINK2_DATA", "MESSAGE_TYPE__LINK2_DATA", 4 },
+  {
+    "enable",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_BOOL,
+    0,   /* quantifier_offset */
+    offsetof(Sensor1Options, enable),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
 };
-static const ProtobufCIntRange message_type__value_ranges[] = {
-{0, 0},{0, 5}
+static const unsigned sensor1_options__field_indices_by_name[] = {
+  0,   /* field[0] = enable */
 };
-static const ProtobufCEnumValueIndex message_type__enum_values_by_name[5] =
+static const ProtobufCIntRange sensor1_options__number_ranges[1 + 1] =
 {
-  { "ALIVE_CHECK", 0 },
-  { "LINK1_DATA", 2 },
-  { "LINK1_OPTIONS", 1 },
-  { "LINK2_DATA", 4 },
-  { "LINK2_OPTIONS", 3 },
+  { 1, 0 },
+  { 0, 1 }
 };
-const ProtobufCEnumDescriptor message_type__descriptor =
+const ProtobufCMessageDescriptor sensor1_options__descriptor =
 {
-  PROTOBUF_C__ENUM_DESCRIPTOR_MAGIC,
-  "MessageType",
-  "MessageType",
-  "MessageType",
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "Sensor1Options",
+  "Sensor1Options",
+  "Sensor1Options",
   "",
-  5,
-  message_type__enum_values_by_number,
-  5,
-  message_type__enum_values_by_name,
+  sizeof(Sensor1Options),
   1,
-  message_type__value_ranges,
-  NULL,NULL,NULL,NULL   /* reserved[1234] */
+  sensor1_options__field_descriptors,
+  sensor1_options__field_indices_by_name,
+  1,  sensor1_options__number_ranges,
+  (ProtobufCMessageInit) sensor1_options__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor frame_payload__field_descriptors[4] =
+{
+  {
+    "test1_data",
+    1,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    offsetof(FramePayload, payload_case),
+    offsetof(FramePayload, test1_data),
+    &test1_data__descriptor,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "test1_options",
+    2,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    offsetof(FramePayload, payload_case),
+    offsetof(FramePayload, test1_options),
+    &test1_options__descriptor,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "sensor1_data",
+    3,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    offsetof(FramePayload, payload_case),
+    offsetof(FramePayload, sensor1_data),
+    &sensor1_data__descriptor,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "sensor1_options",
+    4,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    offsetof(FramePayload, payload_case),
+    offsetof(FramePayload, sensor1_options),
+    &sensor1_options__descriptor,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned frame_payload__field_indices_by_name[] = {
+  2,   /* field[2] = sensor1_data */
+  3,   /* field[3] = sensor1_options */
+  0,   /* field[0] = test1_data */
+  1,   /* field[1] = test1_options */
+};
+static const ProtobufCIntRange frame_payload__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 4 }
+};
+const ProtobufCMessageDescriptor frame_payload__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "FramePayload",
+  "FramePayload",
+  "FramePayload",
+  "",
+  sizeof(FramePayload),
+  4,
+  frame_payload__field_descriptors,
+  frame_payload__field_indices_by_name,
+  1,  frame_payload__number_ranges,
+  (ProtobufCMessageInit) frame_payload__init,
+  NULL,NULL,NULL    /* reserved[123] */
 };
