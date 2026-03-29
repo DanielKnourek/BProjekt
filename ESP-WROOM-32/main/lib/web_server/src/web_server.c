@@ -8,6 +8,7 @@
 
 // handler specific
 #include "driver/gpio.h"
+#include "esp_random.h"
 
 static const char* TAG = "http_server.c";
 

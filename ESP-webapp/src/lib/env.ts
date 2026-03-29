@@ -5,7 +5,7 @@ type ENV_type = {
 };
 
 const ENV = {
-  API_HOST: "http://192.168.137.53",
+  API_HOST: "http://192.168.137.117",
   API_PORT: 80,
   API_PATH: "api/",
 };
