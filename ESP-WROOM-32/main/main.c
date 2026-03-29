@@ -18,7 +18,6 @@
 #include "net_con.h"
 #include "serial_link.h"
 #include "web_server.h"
-
 /* Can use project configuration menu (idf.py menuconfig) to choose the GPIO to
    blink, or you can edit the following line and set a number here.
 */

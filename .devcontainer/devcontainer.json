@@ -21,6 +21,7 @@
 				"idf.toolsPath": "/opt/esp",
 				"idf.espIdfPath": "/opt/esp/idf",
 				"idf.port": "/dev/ttyACM0",
+				"idf.monitorBaudRate": "115200",
 				// "terminal.integrated.shell.linux": "/bin/bash",
 				"cmake.sourceDirectory": "${workspaceFolder}/ESP-WROOM-32",
 				"editor.defaultFormatter": "ms-vscode.cpptools",
