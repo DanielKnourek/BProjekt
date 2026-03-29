@@ -3,8 +3,9 @@
 #include "driver/uart.h"
 // #include "driver/gpio.h"
 // #include "string.h"
-#include "esp_log.h"
 #include <string.h>
+
+#include "esp_log.h"
 
 static const char* TAG = "serial_link.c";
 
@@ -16,21 +17,22 @@ static const int RX_BUF_SIZE = 128;
 #define __AUTO_FREE_MSG__ __attribute__((cleanup(auto_free_message)))
 
 /*
-* @note Cleanup function for ProtobufCMessage pointers.
-*       It will automatically free the memory allocated for a ProtobufCMessage when the variable goes out of scope.
-*/
-static inline void auto_free_message(void *ptr) {
+ * @note Cleanup function for ProtobufCMessage pointers.
+ *       It will automatically free the memory allocated for a ProtobufCMessage
+ * when the variable goes out of scope.
+ */
+static inline void auto_free_message(void* ptr) {
     // Cast the generic void* back to a pointer-to-a-ProtobufCMessage-pointer
-    ProtobufCMessage **msg_ptr = (ProtobufCMessage **)ptr;
-    
+    ProtobufCMessage** msg_ptr = (ProtobufCMessage**)ptr;
+
     if (msg_ptr != NULL && *msg_ptr != NULL) {
-        ESP_LOGD("CLEANUP", "Automatically freeing message of type %s.", (*msg_ptr)->descriptor->name);
+        ESP_LOGD("CLEANUP", "Automatically freeing message of type %s.",
+                 (*msg_ptr)->descriptor->name);
         // Use the universal protobuf-c free function!
         protobuf_c_message_free_unpacked(*msg_ptr, NULL);
-        *msg_ptr = NULL; // Nullify to prevent dangling pointers
+        *msg_ptr = NULL;  // Nullify to prevent dangling pointers
     }
 }
-
 
 void init(void) {
     const uart_config_t uart_config = {
@@ -73,36 +75,40 @@ void init(void) {
 //     }
 // }
 
-/* @note Caller is responsible for calling frame_payload__free_unpacked() on the returned pointer.  
-*
-*   use __AUTO_FREE_MSG__ to automatically free the message when it goes out of scope, or call frame_payload__free_unpacked() manually when done with the message.
-*/
+/* @note Caller is responsible for calling frame_payload__free_unpacked() on the
+ * returned pointer.
+ *
+ *   use __AUTO_FREE_MSG__ to automatically free the message when it goes out of
+ * scope, or call frame_payload__free_unpacked() manually when done with the
+ * message.
+ */
 FramePayload* create_frame_payload(uint8_t* data, size_t rxBytes) {
     // create_frame_payload pb
-    //  -- read FrameHeader FIRST to know the type of message, then read the rest
-    //  of the data accordingly
-    
-    // TODO: len_header could be made static const to avoid recomputing the size every time, but this is just a test for now
-    unsigned len_header = frame_header__get_packed_size(&(FrameHeader)FRAME_HEADER__INIT);
-    __AUTO_FREE_MSG__ FrameHeader* msg_header = frame_header__unpack(NULL, len_header, data);
+    //  -- read FrameHeader FIRST to know the type of message, then read the
+    //  rest of the data accordingly
+
+    // TODO: len_header could be made static const to avoid recomputing the size
+    // every time, but this is just a test for now
+    unsigned len_header =
+        frame_header__get_packed_size(&(FrameHeader)FRAME_HEADER__INIT);
+    __AUTO_FREE_MSG__ FrameHeader* msg_header =
+        frame_header__unpack(NULL, len_header, data);
     if (msg_header == NULL) {
         ESP_LOGE(TAG, "error unpacking incoming message_id__unpack");
         return NULL;
     }
 
     // display the message's fields. TODO: remove after testing
-    ESP_LOGI(TAG, "create_frame_payload header: id=%d; data:%d" PRIi32, 
-            (int)msg_header->next_message_size,
-             (int)msg_header->crc);
+    ESP_LOGI(TAG, "create_frame_payload header: id=%d; data:%d" PRIi32,
+             (int)msg_header->next_message_size, (int)msg_header->crc);
 
     if (len_header + msg_header->next_message_size > rxBytes) {
         ESP_LOGE(TAG, "Not enough data for FramePayload");
         return NULL;
     }
-    
-    FramePayload* msg_payload = frame_payload__unpack(NULL, 
-        msg_header->next_message_size, 
-        data + len_header);
+
+    FramePayload* msg_payload = frame_payload__unpack(
+        NULL, msg_header->next_message_size, data + len_header);
 
     if (msg_payload == NULL) {
         ESP_LOGE(TAG, "error unpacking incoming link1_data__unpack");
@@ -129,13 +135,15 @@ static void rx_task(void* arg) {
             data[rxBytes] = 0;
 
             // TODO: remove after testing
-            ESP_LOGI(RX_TASK_TAG, "Read %d bytes: '%s' |1ca5c|", rxBytes, (char*)data);
+            ESP_LOGI(RX_TASK_TAG, "Read %d bytes: '%s' |1ca5c|", rxBytes,
+                     (char*)data);
             ESP_LOG_BUFFER_HEXDUMP(RX_TASK_TAG, data, rxBytes, ESP_LOG_INFO);
 
-            __AUTO_FREE_MSG__ FramePayload* recieved_data = create_frame_payload(data, rxBytes);
-            ESP_LOGI(RX_TASK_TAG, "Received data: %d" PRIi32, (int)recieved_data->test1_data->test_data);
+            __AUTO_FREE_MSG__ FramePayload* recieved_data =
+                create_frame_payload(data, rxBytes);
+            ESP_LOGI(RX_TASK_TAG, "Received data: %d" PRIi32,
+                     (int)recieved_data->test1_data->test_data);
             // frame_payload__free_unpacked(recieved_data, NULL);
-
         }
     }
     free(data);
@@ -150,6 +158,4 @@ void uart_init(void) {
     //             configMAX_PRIORITIES - 2, NULL);
 }
 
-void test(void) {
-    uart_init();
-}
+void start_uart_link(void) { uart_init(); }
