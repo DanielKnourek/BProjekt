@@ -2,9 +2,9 @@
     "name": "TeX Live base",
     "dockerFile": "texlive.dockerfile",
     // Mount the parent directory to allow Git to find the root, especially for worktrees
-    "workspaceFolder": "/workspace/BProjekt-DOC/doc",
+    "workspaceFolder": "/workspace/doc",
     "mounts": [
-        "source=../..,target=/workspace,type=bind"
+        "source=.,target=/workspace,type=bind"
     ],
     "customizations": {
         "vscode": {
