@@ -1,0 +1,26 @@
+{
+    "name": "STM32 Development",
+    "initializeCommand": "bash .devcontainer/stm/udev_rules/install_host_rules.sh",
+
+    "build": {
+        "dockerfile": "stm32cube.dockerfile"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "stmicroelectronics.stm32-vscode-extension",
+                "ms-vscode.cpptools"
+            ],
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "bash"
+            }
+        }
+    },
+    "remoteUser": "vscode",
+    "runArgs": [
+        "--privileged",
+        "-v", "/dev/bus/usb:/dev/bus/usb"
+    ],
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+    "workspaceFolder": "/workspace/STM32F746-DISCO"
+}

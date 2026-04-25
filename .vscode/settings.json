@@ -1,0 +1,8 @@
+{
+    "remote.extensionKind": {
+        "stmicroelectronics.stm32-vscode-extension": [
+            "workspace"
+        ]
+    },
+    "cmake.sourceDirectory": "/home/daniel/dev/BProjekt_stm_vscode/STM32F746-DISCO"
+}

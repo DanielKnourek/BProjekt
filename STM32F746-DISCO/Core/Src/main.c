@@ -11,7 +11,7 @@
  *
  * This software is licensed under terms that can be found in the LICENSE file
  * in the root directory of this software component.
- * If no LICENSE file comes with this software, it is provided AS-IS.
+ * If no LICENSE file comes with this sofětware, it is provided AS-IS.
  *
  ******************************************************************************
  */
@@ -23,6 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdint.h>
 #include <stdlib.h>
 #include "flag_tools.h"
 #include "messenger.pb.h"
@@ -254,6 +255,28 @@ int main(void) {
 	HAL_UART_Receive_DMA(&huart6, (uint8_t*) rx_buffer, sizeof(rx_buffer));
 	static const char *TurnOnMessage = "YES";
 	static const char *TurnOffMessage = "NO";
+
+	// PROGRAM STATE SETUP BEGIN
+	uint8_t active_programs = 0x000000;
+	uint32_t last_program_change_tick = 0;
+	uint32_t program_change_interval = 2000; // in ms
+	
+	// configure pins
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
+	// D3 (Bit 0)
+	GPIO_InitStruct.Pin = ARDUINO_PWM_D3_Pin;
+	HAL_GPIO_Init(ARDUINO_PWM_D3_GPIO_Port, &GPIO_InitStruct);
+	// D4 (Bit 1)
+	GPIO_InitStruct.Pin = ARDUINO_D4_Pin;
+	HAL_GPIO_Init(ARDUINO_D4_GPIO_Port, &GPIO_InitStruct);
+	// D5 (Bit 2)
+	GPIO_InitStruct.Pin = ARDUINO_PWM_CS_D5_Pin;
+	HAL_GPIO_Init(ARDUINO_PWM_CS_D5_GPIO_Port, &GPIO_InitStruct);
+	// PROGRAM STATE SETUP END
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -264,6 +287,22 @@ int main(void) {
 		MX_USB_HOST_Process();
 
 		/* USER CODE BEGIN 3 */
+
+		// PROGRAM PROCESS STATE BEGIN
+		if ((currentTick - last_program_change_tick) >= program_change_interval) {
+			last_program_change_tick = currentTick;
+			active_programs++;
+			if(active_programs >= 8){
+				active_programs = 0;
+			}
+			
+			// write to pins
+			HAL_GPIO_WritePin(ARDUINO_PWM_D3_GPIO_Port, ARDUINO_PWM_D3_Pin, (active_programs & 0x01) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(ARDUINO_D4_GPIO_Port, ARDUINO_D4_Pin, (active_programs & 0x02) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(ARDUINO_PWM_CS_D5_GPIO_Port, ARDUINO_PWM_CS_D5_Pin, (active_programs & 0x04) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+		}
+			
+		// PROGRAM PROCESS STATE END
 
 		if ((currentTick - lastTick) >= 50) {
 			lastTick = currentTick;
