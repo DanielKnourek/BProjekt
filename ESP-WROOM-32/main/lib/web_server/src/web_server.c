@@ -65,34 +65,55 @@ static esp_err_t handler_get_api_led(httpd_req_t* req) {
 #undef STR
 }
 
+typedef struct {
+    httpd_req_t *req;
+} sse_task_ctx_t;
+
+static void random_sse_task(void *arg) {
+    sse_task_ctx_t *ctx = (sse_task_ctx_t *)arg;
+    httpd_req_t *req = ctx->req;
+    int random_val = 0;
+    char str[64];
+
+    for (size_t i = 0; i < 45; i++) {
+        esp_fill_random(&random_val, sizeof(random_val));
+        ESP_LOGI(TAG, "Random number generated: %d", random_val);
+        
+        sprintf(str, "data: Rand:%d\n\n", random_val);
+        httpd_resp_send_chunk(req, str, strlen(str));
+
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+    
+    ESP_LOGI(TAG, "All number generated");
+    httpd_resp_sendstr_chunk(req, NULL);
+    
+    httpd_req_async_handler_complete(req);
+    free(ctx);
+    vTaskDelete(NULL);
+}
+
 static esp_err_t handler_get_api_random(httpd_req_t* req) {
     httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
     httpd_resp_set_hdr(req, "Cache-Control", "no-cache");
     httpd_resp_set_hdr(req, "Content-Type", "text/event-stream");
-    int random = 0;
-    char str[40];
 
-    for (size_t i = 0; i < 45; i++) {
-        esp_fill_random(&random, sizeof random);
-        ESP_LOGI(TAG, "Random number generated: %d", random);
-        sprintf(str, "data: Rand:%d", random);
-        httpd_resp_send_chunk(req, str, strlen(str));
-
-        vTaskDelay(500 / portTICK_PERIOD_MS);
-        httpd_resp_sendstr_chunk(req, "\n\n");
-
-        vTaskDelay(500 / portTICK_PERIOD_MS);
+    httpd_req_t *req_copy = NULL;
+    if (httpd_req_async_handler_begin(req, &req_copy) != ESP_OK) {
+        return ESP_FAIL;
     }
-    ESP_LOGI(TAG, "All number generated");
-    httpd_resp_sendstr_chunk(req, NULL);
+
+    sse_task_ctx_t *ctx = malloc(sizeof(sse_task_ctx_t));
+    ctx->req = req_copy;
+    
+    xTaskCreate(random_sse_task, "random_sse", 4096, ctx, 5, NULL);
+
     return ESP_OK;
 }
 
 static esp_err_t app_frontend_handler(httpd_req_t* req) {
-    extern const unsigned char upload_script_start[] asm(
-        "_binary_index_html_start");
-    extern const unsigned char upload_script_end[] asm(
-        "_binary_index_html_end");
+    extern const unsigned char upload_script_start[] asm("_binary_index_html_start");
+    extern const unsigned char upload_script_end[]   asm("_binary_index_html_end");
     const size_t upload_script_size = (upload_script_end -
     upload_script_start);
 

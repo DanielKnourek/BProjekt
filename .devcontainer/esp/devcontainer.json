@@ -4,8 +4,10 @@
 		"context": ".",
 		"dockerfile": "esp-idf.dockerfile"
 	},
-	"workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/devcontainer,type=bind",
-	"workspaceFolder": "/workspaces/devcontainer/ESP-WROOM-32",
+	
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+	"workspaceFolder": "/workspace/ESP-WROOM-32",
+
 	// Pre-configure ESP-IDF extension
 	"customizations": {
 		"vscode": {
@@ -14,7 +16,7 @@
 				"ms-vscode.cmake-tools",
 				"ms-vscode.cpptools",
 				"espressif.esp-idf-extension",
-				"zxh404.vscode-proto3"
+				"DrBlury.protobuf-vsc"
 			],
 			"settings": {
 				"idf.showOnboardingOnInit": false,
@@ -36,12 +38,10 @@
 		"--device=/dev/ttyACM0",
 		"--privileged"
 	],
-	"initializeCommand": [
-		"make",
-		"-C",
-		".devcontainer/",
-		"tryMount"
-	],
+	"initializeCommand": "bash .devcontainer/esp/udev_rules/install_host_rules.sh && make -C .devcontainer/esp/ tryMount",
+	// ensure ttyACM0 is accessible
+	"postStartCommand": "sudo chmod 666 /dev/ttyACM0",
+	
 
 	// "mounts": [
 	// 	"source=/dev/ttyACM0,target=/dev/ttyACM0,type=bind"

@@ -1,9 +1,12 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 {
   "name": "ESP Frontend Webapp",
-  "dockerComposeFile": "docker-compose.yml",
-  "service": "frontend",
-  "workspaceFolder": "/workspaces/BProjekt/ESP-webapp",
+  
+  "build": {
+        "dockerfile": "esp-frontend.dockerfile"
+  },
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+	"workspaceFolder": "/workspace/ESP-webapp",
   // Features to add to the dev container. More info: https://containers.dev/features.
   // "features": {},
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
