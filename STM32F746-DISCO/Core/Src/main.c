@@ -105,6 +105,15 @@ SDRAM_HandleTypeDef hsdram1;
 
 /* USER CODE BEGIN PV */
 #define DEBUG_user true
+uint8_t tx_buffer[128];
+
+#define RX_BUFFER_SIZE 512
+uint8_t rx_buffer[RX_BUFFER_SIZE];
+uint16_t rx_msg_size = 0;
+
+uint8_t process_buffer[RX_BUFFER_SIZE];
+uint16_t process_len = 0;
+uint16_t read_pos = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -157,13 +166,22 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	/* Prevent unused argument(s) compilation warning */
 	if (huart == &huart6) {
-		set_flag(&Flags, FT_Flag1);
+		set_flag(&Flags, FT_ACTION_RECIEVE);
 	}
 
 	/* NOTE : This function should not be modified, when the callback is needed,
 	 the HAL_UART_RxCpltCallback can be implemented in the user file.
 	 */
 }
+
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
+	/* Prevent unused argument(s) compilation warning */
+	if (huart == &huart6) {
+		rx_msg_size = Size;
+		set_flag(&Flags, FT_ACTION_RECIEVE);
+	}
+}
+
 //void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 //{
 //  /* Prevent unused argument(s) compilation warning */
@@ -251,9 +269,8 @@ int main(void)
 //	GPIO_PinState lastStateBTN1 = GPIO_PIN_RESET;
 //	GPIO_PinState currentStateBTN1 = GPIO_PIN_RESET;
 
-	uint8_t tx_buffer[128];
-	uint8_t rx_buffer[128];
-	HAL_UART_Receive_DMA(&huart6, (uint8_t*) rx_buffer, sizeof(rx_buffer));
+	HAL_UARTEx_ReceiveToIdle_DMA(&huart6, (uint8_t*) rx_buffer, sizeof(rx_buffer));
+	__HAL_DMA_DISABLE_IT(&hdma_usart6_rx, DMA_IT_HT); // Disable Half Transfer Interrupt
 	static const char *TurnOnMessage = "YES";
 	static const char *TurnOffMessage = "NO";
 
@@ -289,21 +306,21 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-		// PROGRAM PROCESS STATE BEGIN
-		if ((currentTick - last_program_change_tick) >= program_change_interval) {
-			last_program_change_tick = currentTick;
-			active_programs++;
-			if(active_programs >= 8){
-				active_programs = 0;
-			}
+		// // PROGRAM PROCESS STATE BEGIN
+		// if ((currentTick - last_program_change_tick) >= program_change_interval) {
+		// 	last_program_change_tick = currentTick;
+		// 	active_programs++;
+		// 	if(active_programs >= 8){
+		// 		active_programs = 0;
+		// 	}
 			
-			// write to pins
-			HAL_GPIO_WritePin(ARDUINO_PWM_D3_GPIO_Port, ARDUINO_PWM_D3_Pin, (active_programs & 0x01) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(ARDUINO_D4_GPIO_Port, ARDUINO_D4_Pin, (active_programs & 0x02) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(ARDUINO_PWM_CS_D5_GPIO_Port, ARDUINO_PWM_CS_D5_Pin, (active_programs & 0x04) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-		}
+		// 	// write to pins
+		// 	HAL_GPIO_WritePin(ARDUINO_PWM_D3_GPIO_Port, ARDUINO_PWM_D3_Pin, (active_programs & 0x01) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+		// 	HAL_GPIO_WritePin(ARDUINO_D4_GPIO_Port, ARDUINO_D4_Pin, (active_programs & 0x02) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+		// 	HAL_GPIO_WritePin(ARDUINO_PWM_CS_D5_GPIO_Port, ARDUINO_PWM_CS_D5_Pin, (active_programs & 0x04) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+		// }
 			
-		// PROGRAM PROCESS STATE END
+		// // PROGRAM PROCESS STATE END
 
 		if ((currentTick - lastTick) >= 50) {
 			lastTick = currentTick;
@@ -321,7 +338,7 @@ int main(void)
 		if (is_set(&Flags, FT_ACTION_USER)) {
 			reset_flag(&Flags, FT_ACTION_USER);
 
-			uint8_t tx_buffer[128] = { 0 };
+			memset(tx_buffer, 0, sizeof(tx_buffer));
 			/* TRANSMIT MESSAGE BEGIN */
 
 			Test1Data payload_data1 = Test1Data_init_zero;
@@ -358,8 +375,73 @@ int main(void)
 
 		if (is_set(&Flags, FT_ACTION_RECIEVE)) {
 			reset_flag(&Flags, FT_ACTION_RECIEVE);
-			HAL_UART_Receive_DMA(&huart6, (uint8_t*) rx_buffer,
-					sizeof(rx_buffer));
+
+			// 1. Extract newly received bytes from the circular DMA buffer
+			uint16_t write_pos = rx_msg_size;
+			uint16_t bytes_available;
+			if (write_pos >= read_pos) {
+				bytes_available = write_pos - read_pos;
+			} else {
+				bytes_available = RX_BUFFER_SIZE - read_pos + write_pos;
+			}
+
+			while (bytes_available > 0) {
+				if (process_len < RX_BUFFER_SIZE) {
+					process_buffer[process_len++] = rx_buffer[read_pos];
+				}
+				read_pos++;
+				if (read_pos >= RX_BUFFER_SIZE) {
+					read_pos = 0;
+				}
+				bytes_available--;
+			}
+
+			// 2. Parse all complete messages in the linear buffer
+			uint16_t parse_index = 0;
+			while (parse_index + 10 <= process_len) {
+				pb_istream_t header_stream = pb_istream_from_buffer(&process_buffer[parse_index], 10);
+				FrameHeader header = FrameHeader_init_zero;
+				bool status = pb_decode(&header_stream, FrameHeader_fields, &header);
+
+				if (!status || header.next_message_size > 256) {
+					// Invalid header or unsynced, skip 1 byte to try resyncing
+					parse_index++;
+					continue;
+				}
+
+				if (parse_index + 10 + header.next_message_size <= process_len) {
+					// We have a full payload, decode it
+					pb_istream_t payload_stream = pb_istream_from_buffer(&process_buffer[parse_index + 10], header.next_message_size);
+					FramePayload payload = FramePayload_init_zero;
+					status = pb_decode(&payload_stream, FramePayload_fields, &payload);
+
+					if (status) {
+						if (payload.which_payload == FramePayload_test1_options_tag) {
+							HAL_GPIO_WritePin(ARDUINO_PWM_D3_GPIO_Port, ARDUINO_PWM_D3_Pin, 
+								payload.payload.test1_options.enable ? GPIO_PIN_SET : GPIO_PIN_RESET);
+						} 
+						else if (payload.which_payload == FramePayload_sensor1_options_tag) {
+							HAL_GPIO_WritePin(ARDUINO_D4_GPIO_Port, ARDUINO_D4_Pin, 
+								payload.payload.sensor1_options.enable ? GPIO_PIN_SET : GPIO_PIN_RESET);
+						}
+					}
+
+					parse_index += 10 + header.next_message_size;
+				} else {
+					// Not enough bytes for the payload yet, wait for next interrupt
+					break;
+				}
+			}
+
+			// 3. Shift any leftover unparsed bytes to the front of the buffer
+			if (parse_index > 0) {
+				process_len -= parse_index;
+				memmove(process_buffer, &process_buffer[parse_index], process_len);
+			}
+
+			// Note: DO NOT restart HAL_UARTEx_ReceiveToIdle_DMA here.
+			// Because the DMA is in CIRCULAR mode, it keeps running automatically!
+			// set_flag(&Flags, FT_ACTION_USER); 
 		}
 
 		/*
