@@ -26,5 +26,6 @@
         "serial_link.h": "c",
         "messenger.pb-c.h": "c",
         "protobuf-c.h": "c"
-    }
+    },
+    "idf.currentSetup": "/opt/esp/idf"
 }

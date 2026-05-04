@@ -6,6 +6,8 @@
 #include <string.h>
 
 #include "esp_log.h"
+#include "esp_rom_crc.h"
+#include <inttypes.h>
 
 static const char* TAG = "serial_link.c";
 
@@ -82,6 +84,79 @@ void init(void) {
  * scope, or call frame_payload__free_unpacked() manually when done with the
  * message.
  */
+static void send_frame(FramePayload* payload) {
+    FrameHeader header = FRAME_HEADER__INIT;
+    size_t payload_size = frame_payload__get_packed_size(payload);
+    uint8_t* payload_buf = malloc(payload_size);
+    if (!payload_buf) {
+        ESP_LOGE(TAG, "Failed to allocate memory for payload");
+        free(payload_buf);
+        return;
+    }
+        
+
+    frame_payload__pack(payload, payload_buf);
+
+    header.next_message_size = payload_size;
+    header.crc = esp_rom_crc32_le(0, payload_buf, payload_size);
+
+    size_t header_size = frame_header__get_packed_size(&header);
+    uint8_t* total_buf = malloc(header_size + payload_size);
+    if (!total_buf) {
+        ESP_LOGE(TAG, "Failed to allocate memory for transmiting frame buffer");
+        free(payload_buf);
+        return;
+    }
+
+    frame_header__pack(&header, total_buf);
+    memcpy(total_buf + header_size, payload_buf, payload_size);
+
+    int txBytes = uart_write_bytes(UART_NUM_1, total_buf, header_size + payload_size);
+
+
+    ESP_LOGI(TAG, "Sent frame: header_size=%zu, payload_size=%zu, crc=0x%08" PRIx32,
+             header_size, payload_size, header.crc);
+    ESP_LOGI(TAG, "Bytes sent: %d", txBytes);
+
+    free(payload_buf);
+    free(total_buf);
+}
+
+void send_action_program1(bool enable) {
+    FramePayload payload = FRAME_PAYLOAD__INIT;
+    Test1Options options = TEST1_OPTIONS__INIT;
+    options.enable = enable;
+    payload.payload_case = FRAME_PAYLOAD__PAYLOAD_TEST1_OPTIONS;
+    payload.test1_options = &options;
+    send_frame(&payload);
+}
+
+void send_action_program2(bool enable) {
+    FramePayload payload = FRAME_PAYLOAD__INIT;
+    Sensor1Options options = SENSOR1_OPTIONS__INIT;
+    options.enable = enable;
+    payload.payload_case = FRAME_PAYLOAD__PAYLOAD_SENSOR1_OPTIONS;
+    payload.sensor1_options = &options;
+    send_frame(&payload);
+}
+
+void send_action_program3(int32_t val) {
+    FramePayload payload = FRAME_PAYLOAD__INIT;
+    Test1Data data = TEST1_DATA__INIT;
+    data.test_data = val;
+    payload.payload_case = FRAME_PAYLOAD__PAYLOAD_TEST1_DATA;
+    payload.test1_data = &data;
+    send_frame(&payload);
+    
+}
+
+/* @note Caller is responsible for calling frame_payload__free_unpacked() on the
+ * returned pointer.
+ *
+ *   use __AUTO_FREE_MSG__ to automatically free the message when it goes out of
+ * scope, or call frame_payload__free_unpacked() manually when done with the
+ * message.
+ */
 FramePayload* create_frame_payload(uint8_t* data, size_t rxBytes) {
     // create_frame_payload pb
     //  -- read FrameHeader FIRST to know the type of message, then read the
@@ -99,25 +174,52 @@ FramePayload* create_frame_payload(uint8_t* data, size_t rxBytes) {
     }
 
     // display the message's fields. TODO: remove after testing
-    ESP_LOGI(TAG, "create_frame_payload header: id=%d; data:%d" PRIi32,
-             (int)msg_header->next_message_size, (int)msg_header->crc);
+    ESP_LOGI(TAG, "create_frame_payload header: size=%d; crc:0x%08x",
+             (int)msg_header->next_message_size, (unsigned int)msg_header->crc);
 
     if (len_header + msg_header->next_message_size > rxBytes) {
         ESP_LOGE(TAG, "Not enough data for FramePayload");
         return NULL;
     }
 
-    FramePayload* msg_payload = frame_payload__unpack(
-        NULL, msg_header->next_message_size, data + len_header);
-
-    if (msg_payload == NULL) {
-        ESP_LOGE(TAG, "error unpacking incoming link1_data__unpack");
+    uint8_t* payload_ptr = data + len_header;
+    uint32_t cal_crc = esp_rom_crc32_le(0, payload_ptr, msg_header->next_message_size);
+    if (cal_crc != msg_header->crc) {
+        ESP_LOGE(TAG, "CRC mismatch: expected 0x%08x, got 0x%08x",
+                 (unsigned int)msg_header->crc, (unsigned int)cal_crc);
         return NULL;
     }
 
-    // display the message's fields. TODO: remove after testing
-    ESP_LOGI(TAG, "create_frame_payload data: data:%d" PRIi32,
-             (int)msg_payload->test1_data->test_data);
+    FramePayload* msg_payload = frame_payload__unpack(
+        NULL, msg_header->next_message_size, payload_ptr);
+
+    if (msg_payload == NULL) {
+        ESP_LOGE(TAG, "error unpacking FramePayload");
+        return NULL;
+    }
+
+    // display the message's fields based on type
+    switch (msg_payload->payload_case) {
+        case FRAME_PAYLOAD__PAYLOAD_TEST1_DATA:
+            ESP_LOGI(TAG, "Payload: Test1Data = %" PRIi32,
+                     msg_payload->test1_data->test_data);
+            break;
+        case FRAME_PAYLOAD__PAYLOAD_TEST1_OPTIONS:
+            ESP_LOGI(TAG, "Payload: Test1Options = %s",
+                     msg_payload->test1_options->enable ? "true" : "false");
+            break;
+        case FRAME_PAYLOAD__PAYLOAD_SENSOR1_DATA:
+            ESP_LOGI(TAG, "Payload: Sensor1Data = %" PRIi32,
+                     msg_payload->sensor1_data->sensor1_data);
+            break;
+        case FRAME_PAYLOAD__PAYLOAD_SENSOR1_OPTIONS:
+            ESP_LOGI(TAG, "Payload: Sensor1Options = %s",
+                     msg_payload->sensor1_options->enable ? "true" : "false");
+            break;
+        default:
+            ESP_LOGW(TAG, "Payload: Unknown case %d", msg_payload->payload_case);
+            break;
+    }
 
     return msg_payload;
 }
@@ -141,9 +243,9 @@ static void rx_task(void* arg) {
 
             __AUTO_FREE_MSG__ FramePayload* recieved_data =
                 create_frame_payload(data, rxBytes);
-            ESP_LOGI(RX_TASK_TAG, "Received data: %d" PRIi32,
-                     (int)recieved_data->test1_data->test_data);
-            // frame_payload__free_unpacked(recieved_data, NULL);
+            if (recieved_data) {
+                ESP_LOGI(RX_TASK_TAG, "Successfully processed message");
+            }
         }
     }
     free(data);
