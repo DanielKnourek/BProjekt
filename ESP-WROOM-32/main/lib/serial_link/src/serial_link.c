@@ -11,7 +11,7 @@
 
 static const char* TAG = "serial_link.c";
 
-static const int RX_BUF_SIZE = 128;
+static const int RX_BUF_SIZE = 2048;
 
 #define TXD_PIN (CONFIG_UART_GPIO_TX)
 #define RXD_PIN (CONFIG_UART_GPIO_RX)
@@ -122,32 +122,35 @@ static void send_frame(FramePayload* payload) {
     free(total_buf);
 }
 
-void send_action_program1(bool enable) {
+void send_test_int_config(bool enable) {
     FramePayload payload = FRAME_PAYLOAD__INIT;
-    Test1Options options = TEST1_OPTIONS__INIT;
-    options.enable = enable;
-    payload.payload_case = FRAME_PAYLOAD__PAYLOAD_TEST1_OPTIONS;
-    payload.test1_options = &options;
+    TestIntConfig config = TEST_INT_CONFIG__INIT;
+    config.enable = enable;
+    payload.payload_case = FRAME_PAYLOAD__PAYLOAD_TEST_INT_CONFIG;
+    payload.test_int_config = &config;
     send_frame(&payload);
 }
 
-void send_action_program2(bool enable) {
+void send_test_bandwidth_config(bool enable, uint32_t payload_size) {
     FramePayload payload = FRAME_PAYLOAD__INIT;
-    Sensor1Options options = SENSOR1_OPTIONS__INIT;
-    options.enable = enable;
-    payload.payload_case = FRAME_PAYLOAD__PAYLOAD_SENSOR1_OPTIONS;
-    payload.sensor1_options = &options;
+    TestBandwidthConfig config = TEST_BANDWIDTH_CONFIG__INIT;
+    config.enable = enable;
+    if (payload_size > 0) {
+        config.has_payload_size = 1;
+        config.payload_size = payload_size;
+    }
+    payload.payload_case = FRAME_PAYLOAD__PAYLOAD_TEST_BANDWIDTH_CONFIG;
+    payload.test_bandwidth_config = &config;
     send_frame(&payload);
 }
 
-void send_action_program3(int32_t val) {
+void send_stream_config(bool enable) {
     FramePayload payload = FRAME_PAYLOAD__INIT;
-    Test1Data data = TEST1_DATA__INIT;
-    data.test_data = val;
-    payload.payload_case = FRAME_PAYLOAD__PAYLOAD_TEST1_DATA;
-    payload.test1_data = &data;
+    StreamConfig config = STREAM_CONFIG__INIT;
+    config.enable = enable;
+    payload.payload_case = FRAME_PAYLOAD__PAYLOAD_STREAM_CONFIG;
+    payload.stream_config = &config;
     send_frame(&payload);
-    
 }
 
 /* @note Caller is responsible for calling frame_payload__free_unpacked() on the
@@ -162,10 +165,10 @@ FramePayload* create_frame_payload(uint8_t* data, size_t rxBytes) {
     //  -- read FrameHeader FIRST to know the type of message, then read the
     //  rest of the data accordingly
 
-    // TODO: len_header could be made static const to avoid recomputing the size
-    // every time, but this is just a test for now
-    unsigned len_header =
-        frame_header__get_packed_size(&(FrameHeader)FRAME_HEADER__INIT);
+    static unsigned len_header = 0;
+    if (len_header == 0) {
+        len_header = frame_header__get_packed_size(&(FrameHeader)FRAME_HEADER__INIT);
+    }
     __AUTO_FREE_MSG__ FrameHeader* msg_header =
         frame_header__unpack(NULL, len_header, data);
     if (msg_header == NULL) {
@@ -184,9 +187,11 @@ FramePayload* create_frame_payload(uint8_t* data, size_t rxBytes) {
 
     uint8_t* payload_ptr = data + len_header;
     uint32_t cal_crc = esp_rom_crc32_le(0, payload_ptr, msg_header->next_message_size);
-    if (cal_crc != msg_header->crc) {
+    if (msg_header->crc == 0) {
+        ESP_LOGI(TAG, "CRC is not set");
+    } else if (cal_crc != msg_header->crc) {
         ESP_LOGE(TAG, "CRC mismatch: expected 0x%08x, got 0x%08x",
-                 (unsigned int)msg_header->crc, (unsigned int)cal_crc);
+                 (unsigned int)cal_crc, (unsigned int)msg_header->crc);
         return NULL;
     }
 
@@ -197,24 +202,32 @@ FramePayload* create_frame_payload(uint8_t* data, size_t rxBytes) {
         ESP_LOGE(TAG, "error unpacking FramePayload");
         return NULL;
     }
-
+    
     // display the message's fields based on type
     switch (msg_payload->payload_case) {
-        case FRAME_PAYLOAD__PAYLOAD_TEST1_DATA:
-            ESP_LOGI(TAG, "Payload: Test1Data = %" PRIi32,
-                     msg_payload->test1_data->test_data);
+        case FRAME_PAYLOAD__PAYLOAD_TEST_INT_DATA:
+            ESP_LOGI(TAG, "Payload: TestIntData = %" PRIi32,
+                     msg_payload->test_int_data->value);
             break;
-        case FRAME_PAYLOAD__PAYLOAD_TEST1_OPTIONS:
-            ESP_LOGI(TAG, "Payload: Test1Options = %s",
-                     msg_payload->test1_options->enable ? "true" : "false");
+        case FRAME_PAYLOAD__PAYLOAD_TEST_INT_CONFIG:
+            ESP_LOGI(TAG, "Payload: TestIntConfig = %s",
+                     msg_payload->test_int_config->enable ? "true" : "false");
             break;
-        case FRAME_PAYLOAD__PAYLOAD_SENSOR1_DATA:
-            ESP_LOGI(TAG, "Payload: Sensor1Data = %" PRIi32,
-                     msg_payload->sensor1_data->sensor1_data);
+        case FRAME_PAYLOAD__PAYLOAD_TEST_BANDWIDTH_DATA:
+            ESP_LOGI(TAG, "Payload: TestBandwidthData dummy bytes = %zu",
+                     msg_payload->test_bandwidth_data->dummy_data.len);
             break;
-        case FRAME_PAYLOAD__PAYLOAD_SENSOR1_OPTIONS:
-            ESP_LOGI(TAG, "Payload: Sensor1Options = %s",
-                     msg_payload->sensor1_options->enable ? "true" : "false");
+        case FRAME_PAYLOAD__PAYLOAD_TEST_BANDWIDTH_CONFIG:
+            ESP_LOGI(TAG, "Payload: TestBandwidthConfig = %s",
+                     msg_payload->test_bandwidth_config->enable ? "true" : "false");
+            break;
+        case FRAME_PAYLOAD__PAYLOAD_STREAM_DATA:
+            ESP_LOGI(TAG, "Payload: StreamData with %zu ADCs, %zu DACs",
+                     msg_payload->stream_data->n_adc_values, msg_payload->stream_data->n_dac_values);
+            break;
+        case FRAME_PAYLOAD__PAYLOAD_STREAM_CONFIG:
+            ESP_LOGI(TAG, "Payload: StreamConfig = %s",
+                     msg_payload->stream_config->enable ? "true" : "false");
             break;
         default:
             ESP_LOGW(TAG, "Payload: Unknown case %d", msg_payload->payload_case);
@@ -231,15 +244,15 @@ static void rx_task(void* arg) {
 
     uint8_t* data = (uint8_t*)malloc(RX_BUF_SIZE + 1);
     while (1) {
-        const int rxBytes = uart_read_bytes(UART_NUM_1, data, RX_BUF_SIZE,
+        const int rxBytes = uart_read_bytes(UART_NUM_1, data, 2048,
                                             1000 / portTICK_PERIOD_MS);
         if (rxBytes > 0) {
             data[rxBytes] = 0;
 
-            // TODO: remove after testing
-            ESP_LOGI(RX_TASK_TAG, "Read %d bytes: '%s' |1ca5c|", rxBytes,
-                     (char*)data);
-            ESP_LOG_BUFFER_HEXDUMP(RX_TASK_TAG, data, rxBytes, ESP_LOG_INFO);
+            // // TODO: remove after testing
+            // ESP_LOGI(RX_TASK_TAG, "Read %d bytes: '%s' |1ca5c|", rxBytes,
+            //          (char*)data);
+            // ESP_LOG_BUFFER_HEXDUMP(RX_TASK_TAG, data, rxBytes, ESP_LOG_INFO);
 
             __AUTO_FREE_MSG__ FramePayload* recieved_data =
                 create_frame_payload(data, rxBytes);

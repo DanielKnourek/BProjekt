@@ -16,10 +16,12 @@ PROTOBUF_C__BEGIN_DECLS
 
 
 typedef struct _FrameHeader FrameHeader;
-typedef struct _Test1Data Test1Data;
-typedef struct _Test1Options Test1Options;
-typedef struct _Sensor1Data Sensor1Data;
-typedef struct _Sensor1Options Sensor1Options;
+typedef struct _TestIntConfig TestIntConfig;
+typedef struct _TestIntData TestIntData;
+typedef struct _TestBandwidthConfig TestBandwidthConfig;
+typedef struct _TestBandwidthData TestBandwidthData;
+typedef struct _StreamConfig StreamConfig;
+typedef struct _StreamData StreamData;
 typedef struct _FramePayload FramePayload;
 
 
@@ -40,69 +42,138 @@ struct  _FrameHeader
 
 
 /*
- * Intermediate data structures
+ * -----------------------------------------
+ * Program 1: Test Int
+ * -----------------------------------------
  */
-struct  _Test1Data
-{
-  ProtobufCMessage base;
-  int32_t test_data;
-};
-#define TEST1_DATA__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&test1_data__descriptor) \
-    , 0 }
-
-
-struct  _Test1Options
+struct  _TestIntConfig
 {
   ProtobufCMessage base;
   protobuf_c_boolean enable;
 };
-#define TEST1_OPTIONS__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&test1_options__descriptor) \
+#define TEST_INT_CONFIG__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&test_int_config__descriptor) \
     , 0 }
 
 
-struct  _Sensor1Data
+struct  _TestIntData
 {
   ProtobufCMessage base;
-  int32_t sensor1_data;
+  int32_t value;
 };
-#define SENSOR1_DATA__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&sensor1_data__descriptor) \
+#define TEST_INT_DATA__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&test_int_data__descriptor) \
     , 0 }
 
 
-struct  _Sensor1Options
+/*
+ * -----------------------------------------
+ * Program 2: Test Bandwidth
+ * -----------------------------------------
+ */
+struct  _TestBandwidthConfig
 {
   ProtobufCMessage base;
   protobuf_c_boolean enable;
+  /*
+   * Let the receiver know how large the dummy payloads should be
+   */
+  protobuf_c_boolean has_payload_size;
+  uint32_t payload_size;
 };
-#define SENSOR1_OPTIONS__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&sensor1_options__descriptor) \
-    , 0 }
+#define TEST_BANDWIDTH_CONFIG__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&test_bandwidth_config__descriptor) \
+    , 0, 0, 1024u }
+
+
+struct  _TestBandwidthData
+{
+  ProtobufCMessage base;
+  /*
+   * A generic buffer to test throughput
+   */
+  ProtobufCBinaryData dummy_data;
+};
+#define TEST_BANDWIDTH_DATA__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&test_bandwidth_data__descriptor) \
+    , {0,NULL} }
+
+
+/*
+ * -----------------------------------------
+ * Program 3: Streaming (DAC/ADC)
+ * -----------------------------------------
+ */
+struct  _StreamConfig
+{
+  ProtobufCMessage base;
+  protobuf_c_boolean enable;
+  protobuf_c_boolean has_sample_rate_hz;
+  uint32_t sample_rate_hz;
+  /*
+   * Tell the ESP32 how many samples to bundle per frame (e.g., 100)
+   */
+  protobuf_c_boolean has_samples_per_frame;
+  uint32_t samples_per_frame;
+};
+#define STREAM_CONFIG__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&stream_config__descriptor) \
+    , 0, 0, 1000u, 0, 100u }
+
+
+struct  _StreamData
+{
+  ProtobufCMessage base;
+  /*
+   * 'repeated' fields are inherently optional. 
+   * If you only populate dac_values, adc_values takes up 0 bytes over UART.
+   */
+  size_t n_adc_values;
+  int32_t *adc_values;
+  size_t n_dac_values;
+  int32_t *dac_values;
+};
+#define STREAM_DATA__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&stream_data__descriptor) \
+    , 0,NULL, 0,NULL }
 
 
 typedef enum {
   FRAME_PAYLOAD__PAYLOAD__NOT_SET = 0,
-  FRAME_PAYLOAD__PAYLOAD_TEST1_DATA = 1,
-  FRAME_PAYLOAD__PAYLOAD_TEST1_OPTIONS = 2,
-  FRAME_PAYLOAD__PAYLOAD_SENSOR1_DATA = 3,
-  FRAME_PAYLOAD__PAYLOAD_SENSOR1_OPTIONS = 4
+  FRAME_PAYLOAD__PAYLOAD_TEST_INT_CONFIG = 1,
+  FRAME_PAYLOAD__PAYLOAD_TEST_INT_DATA = 2,
+  FRAME_PAYLOAD__PAYLOAD_TEST_BANDWIDTH_CONFIG = 3,
+  FRAME_PAYLOAD__PAYLOAD_TEST_BANDWIDTH_DATA = 4,
+  FRAME_PAYLOAD__PAYLOAD_STREAM_CONFIG = 5,
+  FRAME_PAYLOAD__PAYLOAD_STREAM_DATA = 6
     PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(FRAME_PAYLOAD__PAYLOAD)
 } FramePayload__PayloadCase;
 
 /*
- * The main payload envelope
+ * -----------------------------------------
+ * Main Envelope
+ * -----------------------------------------
  */
 struct  _FramePayload
 {
   ProtobufCMessage base;
   FramePayload__PayloadCase payload_case;
   union {
-    Test1Data *test1_data;
-    Test1Options *test1_options;
-    Sensor1Data *sensor1_data;
-    Sensor1Options *sensor1_options;
+    /*
+     * 1. Test Int
+     */
+    TestIntConfig *test_int_config;
+    TestIntData *test_int_data;
+    /*
+     * 2. Test Bandwidth
+     */
+    TestBandwidthConfig *test_bandwidth_config;
+    TestBandwidthData *test_bandwidth_data;
+    /*
+     * 3. Streaming
+     */
+    StreamConfig *stream_config;
+    StreamData *stream_data;
   };
 };
 #define FRAME_PAYLOAD__INIT \
@@ -129,81 +200,119 @@ FrameHeader *
 void   frame_header__free_unpacked
                      (FrameHeader *message,
                       ProtobufCAllocator *allocator);
-/* Test1Data methods */
-void   test1_data__init
-                     (Test1Data         *message);
-size_t test1_data__get_packed_size
-                     (const Test1Data   *message);
-size_t test1_data__pack
-                     (const Test1Data   *message,
+/* TestIntConfig methods */
+void   test_int_config__init
+                     (TestIntConfig         *message);
+size_t test_int_config__get_packed_size
+                     (const TestIntConfig   *message);
+size_t test_int_config__pack
+                     (const TestIntConfig   *message,
                       uint8_t             *out);
-size_t test1_data__pack_to_buffer
-                     (const Test1Data   *message,
+size_t test_int_config__pack_to_buffer
+                     (const TestIntConfig   *message,
                       ProtobufCBuffer     *buffer);
-Test1Data *
-       test1_data__unpack
+TestIntConfig *
+       test_int_config__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   test1_data__free_unpacked
-                     (Test1Data *message,
+void   test_int_config__free_unpacked
+                     (TestIntConfig *message,
                       ProtobufCAllocator *allocator);
-/* Test1Options methods */
-void   test1_options__init
-                     (Test1Options         *message);
-size_t test1_options__get_packed_size
-                     (const Test1Options   *message);
-size_t test1_options__pack
-                     (const Test1Options   *message,
+/* TestIntData methods */
+void   test_int_data__init
+                     (TestIntData         *message);
+size_t test_int_data__get_packed_size
+                     (const TestIntData   *message);
+size_t test_int_data__pack
+                     (const TestIntData   *message,
                       uint8_t             *out);
-size_t test1_options__pack_to_buffer
-                     (const Test1Options   *message,
+size_t test_int_data__pack_to_buffer
+                     (const TestIntData   *message,
                       ProtobufCBuffer     *buffer);
-Test1Options *
-       test1_options__unpack
+TestIntData *
+       test_int_data__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   test1_options__free_unpacked
-                     (Test1Options *message,
+void   test_int_data__free_unpacked
+                     (TestIntData *message,
                       ProtobufCAllocator *allocator);
-/* Sensor1Data methods */
-void   sensor1_data__init
-                     (Sensor1Data         *message);
-size_t sensor1_data__get_packed_size
-                     (const Sensor1Data   *message);
-size_t sensor1_data__pack
-                     (const Sensor1Data   *message,
+/* TestBandwidthConfig methods */
+void   test_bandwidth_config__init
+                     (TestBandwidthConfig         *message);
+size_t test_bandwidth_config__get_packed_size
+                     (const TestBandwidthConfig   *message);
+size_t test_bandwidth_config__pack
+                     (const TestBandwidthConfig   *message,
                       uint8_t             *out);
-size_t sensor1_data__pack_to_buffer
-                     (const Sensor1Data   *message,
+size_t test_bandwidth_config__pack_to_buffer
+                     (const TestBandwidthConfig   *message,
                       ProtobufCBuffer     *buffer);
-Sensor1Data *
-       sensor1_data__unpack
+TestBandwidthConfig *
+       test_bandwidth_config__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   sensor1_data__free_unpacked
-                     (Sensor1Data *message,
+void   test_bandwidth_config__free_unpacked
+                     (TestBandwidthConfig *message,
                       ProtobufCAllocator *allocator);
-/* Sensor1Options methods */
-void   sensor1_options__init
-                     (Sensor1Options         *message);
-size_t sensor1_options__get_packed_size
-                     (const Sensor1Options   *message);
-size_t sensor1_options__pack
-                     (const Sensor1Options   *message,
+/* TestBandwidthData methods */
+void   test_bandwidth_data__init
+                     (TestBandwidthData         *message);
+size_t test_bandwidth_data__get_packed_size
+                     (const TestBandwidthData   *message);
+size_t test_bandwidth_data__pack
+                     (const TestBandwidthData   *message,
                       uint8_t             *out);
-size_t sensor1_options__pack_to_buffer
-                     (const Sensor1Options   *message,
+size_t test_bandwidth_data__pack_to_buffer
+                     (const TestBandwidthData   *message,
                       ProtobufCBuffer     *buffer);
-Sensor1Options *
-       sensor1_options__unpack
+TestBandwidthData *
+       test_bandwidth_data__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   sensor1_options__free_unpacked
-                     (Sensor1Options *message,
+void   test_bandwidth_data__free_unpacked
+                     (TestBandwidthData *message,
+                      ProtobufCAllocator *allocator);
+/* StreamConfig methods */
+void   stream_config__init
+                     (StreamConfig         *message);
+size_t stream_config__get_packed_size
+                     (const StreamConfig   *message);
+size_t stream_config__pack
+                     (const StreamConfig   *message,
+                      uint8_t             *out);
+size_t stream_config__pack_to_buffer
+                     (const StreamConfig   *message,
+                      ProtobufCBuffer     *buffer);
+StreamConfig *
+       stream_config__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   stream_config__free_unpacked
+                     (StreamConfig *message,
+                      ProtobufCAllocator *allocator);
+/* StreamData methods */
+void   stream_data__init
+                     (StreamData         *message);
+size_t stream_data__get_packed_size
+                     (const StreamData   *message);
+size_t stream_data__pack
+                     (const StreamData   *message,
+                      uint8_t             *out);
+size_t stream_data__pack_to_buffer
+                     (const StreamData   *message,
+                      ProtobufCBuffer     *buffer);
+StreamData *
+       stream_data__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   stream_data__free_unpacked
+                     (StreamData *message,
                       ProtobufCAllocator *allocator);
 /* FramePayload methods */
 void   frame_payload__init
@@ -229,17 +338,23 @@ void   frame_payload__free_unpacked
 typedef void (*FrameHeader_Closure)
                  (const FrameHeader *message,
                   void *closure_data);
-typedef void (*Test1Data_Closure)
-                 (const Test1Data *message,
+typedef void (*TestIntConfig_Closure)
+                 (const TestIntConfig *message,
                   void *closure_data);
-typedef void (*Test1Options_Closure)
-                 (const Test1Options *message,
+typedef void (*TestIntData_Closure)
+                 (const TestIntData *message,
                   void *closure_data);
-typedef void (*Sensor1Data_Closure)
-                 (const Sensor1Data *message,
+typedef void (*TestBandwidthConfig_Closure)
+                 (const TestBandwidthConfig *message,
                   void *closure_data);
-typedef void (*Sensor1Options_Closure)
-                 (const Sensor1Options *message,
+typedef void (*TestBandwidthData_Closure)
+                 (const TestBandwidthData *message,
+                  void *closure_data);
+typedef void (*StreamConfig_Closure)
+                 (const StreamConfig *message,
+                  void *closure_data);
+typedef void (*StreamData_Closure)
+                 (const StreamData *message,
                   void *closure_data);
 typedef void (*FramePayload_Closure)
                  (const FramePayload *message,
@@ -251,10 +366,12 @@ typedef void (*FramePayload_Closure)
 /* --- descriptors --- */
 
 extern const ProtobufCMessageDescriptor frame_header__descriptor;
-extern const ProtobufCMessageDescriptor test1_data__descriptor;
-extern const ProtobufCMessageDescriptor test1_options__descriptor;
-extern const ProtobufCMessageDescriptor sensor1_data__descriptor;
-extern const ProtobufCMessageDescriptor sensor1_options__descriptor;
+extern const ProtobufCMessageDescriptor test_int_config__descriptor;
+extern const ProtobufCMessageDescriptor test_int_data__descriptor;
+extern const ProtobufCMessageDescriptor test_bandwidth_config__descriptor;
+extern const ProtobufCMessageDescriptor test_bandwidth_data__descriptor;
+extern const ProtobufCMessageDescriptor stream_config__descriptor;
+extern const ProtobufCMessageDescriptor stream_data__descriptor;
 extern const ProtobufCMessageDescriptor frame_payload__descriptor;
 
 PROTOBUF_C__END_DECLS

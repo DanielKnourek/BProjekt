@@ -7,6 +7,6 @@
 void start_uart_link(void);
 
 // Actions to STM32
-void send_action_program1(bool enable);
-void send_action_program2(bool enable);
-void send_action_program3(int32_t val);
+void send_test_int_config(bool enable);
+void send_test_bandwidth_config(bool enable, uint32_t payload_size);
+void send_stream_config(bool enable);

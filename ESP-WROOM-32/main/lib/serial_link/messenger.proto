@@ -1,4 +1,4 @@
-// messenger version 0.1.1
+// messenger version 0.2.1
 syntax = "proto2";
 
 message FrameHeader {
@@ -6,29 +6,63 @@ message FrameHeader {
   required fixed32 crc = 2;
 }
 
-// Intermediate data structures
-message Test1Data {
-  required int32 test_data = 1;
-}
-
-message Test1Options {
+// -----------------------------------------
+// Program 1: Test Int
+// -----------------------------------------
+message TestIntConfig {
   required bool enable = 1;
 }
 
-message Sensor1Data {
-  required int32 sensor1_data = 1;
+message TestIntData {
+  required int32 value = 1;
 }
 
-message Sensor1Options {
+// -----------------------------------------
+// Program 2: Test Bandwidth
+// -----------------------------------------
+message TestBandwidthConfig {
   required bool enable = 1;
+  // Let the receiver know how large the dummy payloads should be
+  optional uint32 payload_size = 2 [default = 1024]; 
 }
 
-// The main payload envelope
+message TestBandwidthData {
+  // A generic buffer to test throughput
+  required bytes dummy_data = 1; 
+}
+
+// -----------------------------------------
+// Program 3: Streaming (DAC/ADC)
+// -----------------------------------------
+message StreamConfig {
+  required bool enable = 1;
+  optional uint32 sample_rate_hz = 2 [default = 1000];
+  // Tell the ESP32 how many samples to bundle per frame (e.g., 100)
+  optional uint32 samples_per_frame = 3 [default = 100]; 
+}
+
+message StreamData {
+  // 'repeated' fields are inherently optional. 
+  // If you only populate dac_values, adc_values takes up 0 bytes over UART.
+  repeated int32 adc_values = 1; 
+  repeated int32 dac_values = 2; 
+}
+
+// -----------------------------------------
+// Main Envelope
+// -----------------------------------------
 message FramePayload {
   oneof payload {
-    Test1Data test1_data = 1;
-    Test1Options test1_options = 2;
-    Sensor1Data sensor1_data = 3;
-    Sensor1Options sensor1_options = 4;
+    // 1. Test Int
+    TestIntConfig test_int_config = 1;
+    TestIntData test_int_data = 2;
+
+    // 2. Test Bandwidth
+    TestBandwidthConfig test_bandwidth_config = 3;
+    TestBandwidthData test_bandwidth_data = 4;
+    
+    // 3. Streaming
+    StreamConfig stream_config = 5;
+    StreamData stream_data = 6;
   }
 }

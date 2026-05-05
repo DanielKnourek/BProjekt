@@ -52,184 +52,274 @@ void   frame_header__free_unpacked
   assert(message->base.descriptor == &frame_header__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   test1_data__init
-                     (Test1Data         *message)
+void   test_int_config__init
+                     (TestIntConfig         *message)
 {
-  static const Test1Data init_value = TEST1_DATA__INIT;
+  static const TestIntConfig init_value = TEST_INT_CONFIG__INIT;
   *message = init_value;
 }
-size_t test1_data__get_packed_size
-                     (const Test1Data *message)
+size_t test_int_config__get_packed_size
+                     (const TestIntConfig *message)
 {
-  assert(message->base.descriptor == &test1_data__descriptor);
+  assert(message->base.descriptor == &test_int_config__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t test1_data__pack
-                     (const Test1Data *message,
+size_t test_int_config__pack
+                     (const TestIntConfig *message,
                       uint8_t       *out)
 {
-  assert(message->base.descriptor == &test1_data__descriptor);
+  assert(message->base.descriptor == &test_int_config__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t test1_data__pack_to_buffer
-                     (const Test1Data *message,
+size_t test_int_config__pack_to_buffer
+                     (const TestIntConfig *message,
                       ProtobufCBuffer *buffer)
 {
-  assert(message->base.descriptor == &test1_data__descriptor);
+  assert(message->base.descriptor == &test_int_config__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-Test1Data *
-       test1_data__unpack
+TestIntConfig *
+       test_int_config__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (Test1Data *)
-     protobuf_c_message_unpack (&test1_data__descriptor,
+  return (TestIntConfig *)
+     protobuf_c_message_unpack (&test_int_config__descriptor,
                                 allocator, len, data);
 }
-void   test1_data__free_unpacked
-                     (Test1Data *message,
+void   test_int_config__free_unpacked
+                     (TestIntConfig *message,
                       ProtobufCAllocator *allocator)
 {
   if(!message)
     return;
-  assert(message->base.descriptor == &test1_data__descriptor);
+  assert(message->base.descriptor == &test_int_config__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   test1_options__init
-                     (Test1Options         *message)
+void   test_int_data__init
+                     (TestIntData         *message)
 {
-  static const Test1Options init_value = TEST1_OPTIONS__INIT;
+  static const TestIntData init_value = TEST_INT_DATA__INIT;
   *message = init_value;
 }
-size_t test1_options__get_packed_size
-                     (const Test1Options *message)
+size_t test_int_data__get_packed_size
+                     (const TestIntData *message)
 {
-  assert(message->base.descriptor == &test1_options__descriptor);
+  assert(message->base.descriptor == &test_int_data__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t test1_options__pack
-                     (const Test1Options *message,
+size_t test_int_data__pack
+                     (const TestIntData *message,
                       uint8_t       *out)
 {
-  assert(message->base.descriptor == &test1_options__descriptor);
+  assert(message->base.descriptor == &test_int_data__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t test1_options__pack_to_buffer
-                     (const Test1Options *message,
+size_t test_int_data__pack_to_buffer
+                     (const TestIntData *message,
                       ProtobufCBuffer *buffer)
 {
-  assert(message->base.descriptor == &test1_options__descriptor);
+  assert(message->base.descriptor == &test_int_data__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-Test1Options *
-       test1_options__unpack
+TestIntData *
+       test_int_data__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (Test1Options *)
-     protobuf_c_message_unpack (&test1_options__descriptor,
+  return (TestIntData *)
+     protobuf_c_message_unpack (&test_int_data__descriptor,
                                 allocator, len, data);
 }
-void   test1_options__free_unpacked
-                     (Test1Options *message,
+void   test_int_data__free_unpacked
+                     (TestIntData *message,
                       ProtobufCAllocator *allocator)
 {
   if(!message)
     return;
-  assert(message->base.descriptor == &test1_options__descriptor);
+  assert(message->base.descriptor == &test_int_data__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   sensor1_data__init
-                     (Sensor1Data         *message)
+void   test_bandwidth_config__init
+                     (TestBandwidthConfig         *message)
 {
-  static const Sensor1Data init_value = SENSOR1_DATA__INIT;
+  static const TestBandwidthConfig init_value = TEST_BANDWIDTH_CONFIG__INIT;
   *message = init_value;
 }
-size_t sensor1_data__get_packed_size
-                     (const Sensor1Data *message)
+size_t test_bandwidth_config__get_packed_size
+                     (const TestBandwidthConfig *message)
 {
-  assert(message->base.descriptor == &sensor1_data__descriptor);
+  assert(message->base.descriptor == &test_bandwidth_config__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t sensor1_data__pack
-                     (const Sensor1Data *message,
+size_t test_bandwidth_config__pack
+                     (const TestBandwidthConfig *message,
                       uint8_t       *out)
 {
-  assert(message->base.descriptor == &sensor1_data__descriptor);
+  assert(message->base.descriptor == &test_bandwidth_config__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t sensor1_data__pack_to_buffer
-                     (const Sensor1Data *message,
+size_t test_bandwidth_config__pack_to_buffer
+                     (const TestBandwidthConfig *message,
                       ProtobufCBuffer *buffer)
 {
-  assert(message->base.descriptor == &sensor1_data__descriptor);
+  assert(message->base.descriptor == &test_bandwidth_config__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-Sensor1Data *
-       sensor1_data__unpack
+TestBandwidthConfig *
+       test_bandwidth_config__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (Sensor1Data *)
-     protobuf_c_message_unpack (&sensor1_data__descriptor,
+  return (TestBandwidthConfig *)
+     protobuf_c_message_unpack (&test_bandwidth_config__descriptor,
                                 allocator, len, data);
 }
-void   sensor1_data__free_unpacked
-                     (Sensor1Data *message,
+void   test_bandwidth_config__free_unpacked
+                     (TestBandwidthConfig *message,
                       ProtobufCAllocator *allocator)
 {
   if(!message)
     return;
-  assert(message->base.descriptor == &sensor1_data__descriptor);
+  assert(message->base.descriptor == &test_bandwidth_config__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   sensor1_options__init
-                     (Sensor1Options         *message)
+void   test_bandwidth_data__init
+                     (TestBandwidthData         *message)
 {
-  static const Sensor1Options init_value = SENSOR1_OPTIONS__INIT;
+  static const TestBandwidthData init_value = TEST_BANDWIDTH_DATA__INIT;
   *message = init_value;
 }
-size_t sensor1_options__get_packed_size
-                     (const Sensor1Options *message)
+size_t test_bandwidth_data__get_packed_size
+                     (const TestBandwidthData *message)
 {
-  assert(message->base.descriptor == &sensor1_options__descriptor);
+  assert(message->base.descriptor == &test_bandwidth_data__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t sensor1_options__pack
-                     (const Sensor1Options *message,
+size_t test_bandwidth_data__pack
+                     (const TestBandwidthData *message,
                       uint8_t       *out)
 {
-  assert(message->base.descriptor == &sensor1_options__descriptor);
+  assert(message->base.descriptor == &test_bandwidth_data__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t sensor1_options__pack_to_buffer
-                     (const Sensor1Options *message,
+size_t test_bandwidth_data__pack_to_buffer
+                     (const TestBandwidthData *message,
                       ProtobufCBuffer *buffer)
 {
-  assert(message->base.descriptor == &sensor1_options__descriptor);
+  assert(message->base.descriptor == &test_bandwidth_data__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-Sensor1Options *
-       sensor1_options__unpack
+TestBandwidthData *
+       test_bandwidth_data__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (Sensor1Options *)
-     protobuf_c_message_unpack (&sensor1_options__descriptor,
+  return (TestBandwidthData *)
+     protobuf_c_message_unpack (&test_bandwidth_data__descriptor,
                                 allocator, len, data);
 }
-void   sensor1_options__free_unpacked
-                     (Sensor1Options *message,
+void   test_bandwidth_data__free_unpacked
+                     (TestBandwidthData *message,
                       ProtobufCAllocator *allocator)
 {
   if(!message)
     return;
-  assert(message->base.descriptor == &sensor1_options__descriptor);
+  assert(message->base.descriptor == &test_bandwidth_data__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   stream_config__init
+                     (StreamConfig         *message)
+{
+  static const StreamConfig init_value = STREAM_CONFIG__INIT;
+  *message = init_value;
+}
+size_t stream_config__get_packed_size
+                     (const StreamConfig *message)
+{
+  assert(message->base.descriptor == &stream_config__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t stream_config__pack
+                     (const StreamConfig *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &stream_config__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t stream_config__pack_to_buffer
+                     (const StreamConfig *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &stream_config__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+StreamConfig *
+       stream_config__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (StreamConfig *)
+     protobuf_c_message_unpack (&stream_config__descriptor,
+                                allocator, len, data);
+}
+void   stream_config__free_unpacked
+                     (StreamConfig *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &stream_config__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   stream_data__init
+                     (StreamData         *message)
+{
+  static const StreamData init_value = STREAM_DATA__INIT;
+  *message = init_value;
+}
+size_t stream_data__get_packed_size
+                     (const StreamData *message)
+{
+  assert(message->base.descriptor == &stream_data__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t stream_data__pack
+                     (const StreamData *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &stream_data__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t stream_data__pack_to_buffer
+                     (const StreamData *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &stream_data__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+StreamData *
+       stream_data__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (StreamData *)
+     protobuf_c_message_unpack (&stream_data__descriptor,
+                                allocator, len, data);
+}
+void   stream_data__free_unpacked
+                     (StreamData *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &stream_data__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
 void   frame_payload__init
@@ -328,45 +418,7 @@ const ProtobufCMessageDescriptor frame_header__descriptor =
   (ProtobufCMessageInit) frame_header__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor test1_data__field_descriptors[1] =
-{
-  {
-    "test_data",
-    1,
-    PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_INT32,
-    0,   /* quantifier_offset */
-    offsetof(Test1Data, test_data),
-    NULL,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-};
-static const unsigned test1_data__field_indices_by_name[] = {
-  0,   /* field[0] = test_data */
-};
-static const ProtobufCIntRange test1_data__number_ranges[1 + 1] =
-{
-  { 1, 0 },
-  { 0, 1 }
-};
-const ProtobufCMessageDescriptor test1_data__descriptor =
-{
-  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "Test1Data",
-  "Test1Data",
-  "Test1Data",
-  "",
-  sizeof(Test1Data),
-  1,
-  test1_data__field_descriptors,
-  test1_data__field_indices_by_name,
-  1,  test1_data__number_ranges,
-  (ProtobufCMessageInit) test1_data__init,
-  NULL,NULL,NULL    /* reserved[123] */
-};
-static const ProtobufCFieldDescriptor test1_options__field_descriptors[1] =
+static const ProtobufCFieldDescriptor test_int_config__field_descriptors[1] =
 {
   {
     "enable",
@@ -374,75 +426,76 @@ static const ProtobufCFieldDescriptor test1_options__field_descriptors[1] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_BOOL,
     0,   /* quantifier_offset */
-    offsetof(Test1Options, enable),
+    offsetof(TestIntConfig, enable),
     NULL,
     NULL,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned test1_options__field_indices_by_name[] = {
+static const unsigned test_int_config__field_indices_by_name[] = {
   0,   /* field[0] = enable */
 };
-static const ProtobufCIntRange test1_options__number_ranges[1 + 1] =
+static const ProtobufCIntRange test_int_config__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 1 }
 };
-const ProtobufCMessageDescriptor test1_options__descriptor =
+const ProtobufCMessageDescriptor test_int_config__descriptor =
 {
   PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "Test1Options",
-  "Test1Options",
-  "Test1Options",
+  "TestIntConfig",
+  "TestIntConfig",
+  "TestIntConfig",
   "",
-  sizeof(Test1Options),
+  sizeof(TestIntConfig),
   1,
-  test1_options__field_descriptors,
-  test1_options__field_indices_by_name,
-  1,  test1_options__number_ranges,
-  (ProtobufCMessageInit) test1_options__init,
+  test_int_config__field_descriptors,
+  test_int_config__field_indices_by_name,
+  1,  test_int_config__number_ranges,
+  (ProtobufCMessageInit) test_int_config__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor sensor1_data__field_descriptors[1] =
+static const ProtobufCFieldDescriptor test_int_data__field_descriptors[1] =
 {
   {
-    "sensor1_data",
+    "value",
     1,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
-    offsetof(Sensor1Data, sensor1_data),
+    offsetof(TestIntData, value),
     NULL,
     NULL,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned sensor1_data__field_indices_by_name[] = {
-  0,   /* field[0] = sensor1_data */
+static const unsigned test_int_data__field_indices_by_name[] = {
+  0,   /* field[0] = value */
 };
-static const ProtobufCIntRange sensor1_data__number_ranges[1 + 1] =
+static const ProtobufCIntRange test_int_data__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 1 }
 };
-const ProtobufCMessageDescriptor sensor1_data__descriptor =
+const ProtobufCMessageDescriptor test_int_data__descriptor =
 {
   PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "Sensor1Data",
-  "Sensor1Data",
-  "Sensor1Data",
+  "TestIntData",
+  "TestIntData",
+  "TestIntData",
   "",
-  sizeof(Sensor1Data),
+  sizeof(TestIntData),
   1,
-  sensor1_data__field_descriptors,
-  sensor1_data__field_indices_by_name,
-  1,  sensor1_data__number_ranges,
-  (ProtobufCMessageInit) sensor1_data__init,
+  test_int_data__field_descriptors,
+  test_int_data__field_indices_by_name,
+  1,  test_int_data__number_ranges,
+  (ProtobufCMessageInit) test_int_data__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor sensor1_options__field_descriptors[1] =
+static const uint32_t test_bandwidth_config__payload_size__default_value = 1024u;
+static const ProtobufCFieldDescriptor test_bandwidth_config__field_descriptors[2] =
 {
   {
     "enable",
@@ -450,97 +503,291 @@ static const ProtobufCFieldDescriptor sensor1_options__field_descriptors[1] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_BOOL,
     0,   /* quantifier_offset */
-    offsetof(Sensor1Options, enable),
+    offsetof(TestBandwidthConfig, enable),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "payload_size",
+    2,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(TestBandwidthConfig, has_payload_size),
+    offsetof(TestBandwidthConfig, payload_size),
+    NULL,
+    &test_bandwidth_config__payload_size__default_value,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned test_bandwidth_config__field_indices_by_name[] = {
+  0,   /* field[0] = enable */
+  1,   /* field[1] = payload_size */
+};
+static const ProtobufCIntRange test_bandwidth_config__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 2 }
+};
+const ProtobufCMessageDescriptor test_bandwidth_config__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "TestBandwidthConfig",
+  "TestBandwidthConfig",
+  "TestBandwidthConfig",
+  "",
+  sizeof(TestBandwidthConfig),
+  2,
+  test_bandwidth_config__field_descriptors,
+  test_bandwidth_config__field_indices_by_name,
+  1,  test_bandwidth_config__number_ranges,
+  (ProtobufCMessageInit) test_bandwidth_config__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor test_bandwidth_data__field_descriptors[1] =
+{
+  {
+    "dummy_data",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_BYTES,
+    0,   /* quantifier_offset */
+    offsetof(TestBandwidthData, dummy_data),
     NULL,
     NULL,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned sensor1_options__field_indices_by_name[] = {
-  0,   /* field[0] = enable */
+static const unsigned test_bandwidth_data__field_indices_by_name[] = {
+  0,   /* field[0] = dummy_data */
 };
-static const ProtobufCIntRange sensor1_options__number_ranges[1 + 1] =
+static const ProtobufCIntRange test_bandwidth_data__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 1 }
 };
-const ProtobufCMessageDescriptor sensor1_options__descriptor =
+const ProtobufCMessageDescriptor test_bandwidth_data__descriptor =
 {
   PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "Sensor1Options",
-  "Sensor1Options",
-  "Sensor1Options",
+  "TestBandwidthData",
+  "TestBandwidthData",
+  "TestBandwidthData",
   "",
-  sizeof(Sensor1Options),
+  sizeof(TestBandwidthData),
   1,
-  sensor1_options__field_descriptors,
-  sensor1_options__field_indices_by_name,
-  1,  sensor1_options__number_ranges,
-  (ProtobufCMessageInit) sensor1_options__init,
+  test_bandwidth_data__field_descriptors,
+  test_bandwidth_data__field_indices_by_name,
+  1,  test_bandwidth_data__number_ranges,
+  (ProtobufCMessageInit) test_bandwidth_data__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor frame_payload__field_descriptors[4] =
+static const uint32_t stream_config__sample_rate_hz__default_value = 1000u;
+static const uint32_t stream_config__samples_per_frame__default_value = 100u;
+static const ProtobufCFieldDescriptor stream_config__field_descriptors[3] =
 {
   {
-    "test1_data",
+    "enable",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_BOOL,
+    0,   /* quantifier_offset */
+    offsetof(StreamConfig, enable),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "sample_rate_hz",
+    2,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(StreamConfig, has_sample_rate_hz),
+    offsetof(StreamConfig, sample_rate_hz),
+    NULL,
+    &stream_config__sample_rate_hz__default_value,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "samples_per_frame",
+    3,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_UINT32,
+    offsetof(StreamConfig, has_samples_per_frame),
+    offsetof(StreamConfig, samples_per_frame),
+    NULL,
+    &stream_config__samples_per_frame__default_value,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned stream_config__field_indices_by_name[] = {
+  0,   /* field[0] = enable */
+  1,   /* field[1] = sample_rate_hz */
+  2,   /* field[2] = samples_per_frame */
+};
+static const ProtobufCIntRange stream_config__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 3 }
+};
+const ProtobufCMessageDescriptor stream_config__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "StreamConfig",
+  "StreamConfig",
+  "StreamConfig",
+  "",
+  sizeof(StreamConfig),
+  3,
+  stream_config__field_descriptors,
+  stream_config__field_indices_by_name,
+  1,  stream_config__number_ranges,
+  (ProtobufCMessageInit) stream_config__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor stream_data__field_descriptors[2] =
+{
+  {
+    "adc_values",
+    1,
+    PROTOBUF_C_LABEL_REPEATED,
+    PROTOBUF_C_TYPE_INT32,
+    offsetof(StreamData, n_adc_values),
+    offsetof(StreamData, adc_values),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "dac_values",
+    2,
+    PROTOBUF_C_LABEL_REPEATED,
+    PROTOBUF_C_TYPE_INT32,
+    offsetof(StreamData, n_dac_values),
+    offsetof(StreamData, dac_values),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned stream_data__field_indices_by_name[] = {
+  0,   /* field[0] = adc_values */
+  1,   /* field[1] = dac_values */
+};
+static const ProtobufCIntRange stream_data__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 2 }
+};
+const ProtobufCMessageDescriptor stream_data__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "StreamData",
+  "StreamData",
+  "StreamData",
+  "",
+  sizeof(StreamData),
+  2,
+  stream_data__field_descriptors,
+  stream_data__field_indices_by_name,
+  1,  stream_data__number_ranges,
+  (ProtobufCMessageInit) stream_data__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor frame_payload__field_descriptors[6] =
+{
+  {
+    "test_int_config",
     1,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     offsetof(FramePayload, payload_case),
-    offsetof(FramePayload, test1_data),
-    &test1_data__descriptor,
+    offsetof(FramePayload, test_int_config),
+    &test_int_config__descriptor,
     NULL,
     0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "test1_options",
+    "test_int_data",
     2,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     offsetof(FramePayload, payload_case),
-    offsetof(FramePayload, test1_options),
-    &test1_options__descriptor,
+    offsetof(FramePayload, test_int_data),
+    &test_int_data__descriptor,
     NULL,
     0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "sensor1_data",
+    "test_bandwidth_config",
     3,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     offsetof(FramePayload, payload_case),
-    offsetof(FramePayload, sensor1_data),
-    &sensor1_data__descriptor,
+    offsetof(FramePayload, test_bandwidth_config),
+    &test_bandwidth_config__descriptor,
     NULL,
     0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "sensor1_options",
+    "test_bandwidth_data",
     4,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     offsetof(FramePayload, payload_case),
-    offsetof(FramePayload, sensor1_options),
-    &sensor1_options__descriptor,
+    offsetof(FramePayload, test_bandwidth_data),
+    &test_bandwidth_data__descriptor,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "stream_config",
+    5,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    offsetof(FramePayload, payload_case),
+    offsetof(FramePayload, stream_config),
+    &stream_config__descriptor,
+    NULL,
+    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "stream_data",
+    6,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    offsetof(FramePayload, payload_case),
+    offsetof(FramePayload, stream_data),
+    &stream_data__descriptor,
     NULL,
     0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
 static const unsigned frame_payload__field_indices_by_name[] = {
-  2,   /* field[2] = sensor1_data */
-  3,   /* field[3] = sensor1_options */
-  0,   /* field[0] = test1_data */
-  1,   /* field[1] = test1_options */
+  4,   /* field[4] = stream_config */
+  5,   /* field[5] = stream_data */
+  2,   /* field[2] = test_bandwidth_config */
+  3,   /* field[3] = test_bandwidth_data */
+  0,   /* field[0] = test_int_config */
+  1,   /* field[1] = test_int_data */
 };
 static const ProtobufCIntRange frame_payload__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 4 }
+  { 0, 6 }
 };
 const ProtobufCMessageDescriptor frame_payload__descriptor =
 {
@@ -550,7 +797,7 @@ const ProtobufCMessageDescriptor frame_payload__descriptor =
   "FramePayload",
   "",
   sizeof(FramePayload),
-  4,
+  6,
   frame_payload__field_descriptors,
   frame_payload__field_indices_by_name,
   1,  frame_payload__number_ranges,
