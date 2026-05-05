@@ -34,6 +34,8 @@ target_sources(${BUILD_UNIT_0_NAME} PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/Lib/nanopb/pb_encode.c
   ${CMAKE_CURRENT_SOURCE_DIR}/Lib/nanopb/pb_decode.c
   ${CMAKE_CURRENT_SOURCE_DIR}/Lib/nanopb/pb_common.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/serial_link.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/program_mgr.c
 )
 
 # Add include directories

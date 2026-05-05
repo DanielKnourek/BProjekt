@@ -3,8 +3,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
 # Compiler options
 target_compile_options(${BUILD_UNIT_0_NAME} PRIVATE
-    $<$<COMPILE_LANGUAGE:C>: ${CUBE_CMAKE_C_FLAGS}>
-    $<$<COMPILE_LANGUAGE:CXX>: ${CUBE_CMAKE_CXX_FLAGS}>
+    $<$<COMPILE_LANGUAGE:C>: -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb --specs=nano.specs -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F746xx -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage>
+    $<$<COMPILE_LANGUAGE:CXX>: -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb --specs=nano.specs -mcpu=cortex-m7 -std=gnu++14 -g3 -O0 -ffunction-sections -fdata-sections -fno-exceptions -fno-rtti -fno-use-cxa-atexit -Wall -fstack-usage>
     $<$<COMPILE_LANGUAGE:ASM>: ${CUBE_CMAKE_ASM_FLAGS}>
 )
 

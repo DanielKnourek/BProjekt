@@ -32,6 +32,12 @@ typedef struct flag_set
 #define FT_Flag6 ((uint8_t)1 << 6)
 #define FT_Flag7 ((uint8_t)1 << 7)
 
+#define FT_BTN1 FT_Flag0
+#define FT_ACTION_USER FT_Flag7
+#define FT_ACTION_RECIEVE FT_Flag1
+
+extern flag_set Flags;
+
 /* Exported functions --------------------------------------------------------*/
 
 // flag_set init_flags();

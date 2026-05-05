@@ -1,0 +1,3 @@
+TestBandwidthData.dummy_data max_size:1024
+StreamData.adc_values max_count:1000
+StreamData.dac_values max_count:1000
