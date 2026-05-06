@@ -65,9 +65,10 @@ static esp_err_t handler_get_api_led(httpd_req_t* req) {
         uint8_t led2_req = atoi(param);
         send_test_bandwidth_config(led2_req > 0, 1024);
     }
-    if (httpd_query_key_value(buf, "TOGGLE3", param, sizeof(param)) == ESP_OK) {
+    if (httpd_query_key_value(buf, "PROGRAM3", param, sizeof(param)) == ESP_OK) {
         ESP_LOGI(TAG, "Toggling Program 3 via STM32");
-        send_stream_config(true);
+        uint8_t program3_req = atoi(param);
+        send_stream_config(program3_req > 0);
     }
     httpd_resp_send(req, STR, strlen(STR));
 

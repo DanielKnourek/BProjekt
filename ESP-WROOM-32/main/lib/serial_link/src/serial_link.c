@@ -177,7 +177,7 @@ FramePayload* create_frame_payload(uint8_t* data, size_t rxBytes) {
     }
 
     // display the message's fields. TODO: remove after testing
-    ESP_LOGI(TAG, "create_frame_payload header: size=%d; crc:0x%08x",
+    ESP_LOGD(TAG, "create_frame_payload header: size=%d; crc:0x%08x",
              (int)msg_header->next_message_size, (unsigned int)msg_header->crc);
 
     if (len_header + msg_header->next_message_size > rxBytes) {
@@ -188,7 +188,7 @@ FramePayload* create_frame_payload(uint8_t* data, size_t rxBytes) {
     uint8_t* payload_ptr = data + len_header;
     uint32_t cal_crc = esp_rom_crc32_le(0, payload_ptr, msg_header->next_message_size);
     if (msg_header->crc == 0) {
-        ESP_LOGI(TAG, "CRC is not set");
+        ESP_LOGD(TAG, "CRC is not set");
     } else if (cal_crc != msg_header->crc) {
         ESP_LOGE(TAG, "CRC mismatch: expected 0x%08x, got 0x%08x",
                  (unsigned int)cal_crc, (unsigned int)msg_header->crc);
@@ -221,10 +221,26 @@ FramePayload* create_frame_payload(uint8_t* data, size_t rxBytes) {
             ESP_LOGI(TAG, "Payload: TestBandwidthConfig = %s",
                      msg_payload->test_bandwidth_config->enable ? "true" : "false");
             break;
-        case FRAME_PAYLOAD__PAYLOAD_STREAM_DATA:
-            ESP_LOGI(TAG, "Payload: StreamData with %zu ADCs, %zu DACs",
-                     msg_payload->stream_data->n_adc_values, msg_payload->stream_data->n_dac_values);
+        case FRAME_PAYLOAD__PAYLOAD_STREAM_DATA: {
+            static uint32_t stream_msg_count = 0;
+            stream_msg_count++;
+            
+            // Only log 1 in every 50 messages to prevent flooding the console and triggering the watchdog
+            if (stream_msg_count % 50 == 1) {
+                ESP_LOGI(TAG, "Payload: StreamData with %zu ADCs, %zu DACs (msg #%" PRIu32 ")",
+                         msg_payload->stream_data->n_adc_values, msg_payload->stream_data->n_dac_values, stream_msg_count);
+                
+                if (msg_payload->stream_data->n_adc_values > 0) {
+                    char val_buf[256] = {0};
+                    int offset = 0;
+                    for (size_t i = 0; i < msg_payload->stream_data->n_adc_values && i < 15; i++) {
+                        offset += snprintf(val_buf + offset, sizeof(val_buf) - offset, "%" PRIi32 " ", msg_payload->stream_data->adc_values[i]);
+                    }
+                    ESP_LOGI(TAG, "  ADC values: %s%s", val_buf, msg_payload->stream_data->n_adc_values > 15 ? "..." : "");
+                }
+            }
             break;
+        }
         case FRAME_PAYLOAD__PAYLOAD_STREAM_CONFIG:
             ESP_LOGI(TAG, "Payload: StreamConfig = %s",
                      msg_payload->stream_config->enable ? "true" : "false");
@@ -242,26 +258,57 @@ static void rx_task(void* arg) {
     esp_log_level_set(RX_TASK_TAG, ESP_LOG_INFO);
     ESP_LOGI(RX_TASK_TAG, "---- Recieving new data ----");
 
-    uint8_t* data = (uint8_t*)malloc(RX_BUF_SIZE + 1);
+    size_t max_buffer_size = RX_BUF_SIZE * 2;
+    uint8_t* buffer = (uint8_t*)malloc(max_buffer_size);
+    size_t buffer_len = 0;
+
+    static unsigned len_header = 0;
+    if (len_header == 0) {
+        len_header = frame_header__get_packed_size(&(FrameHeader)FRAME_HEADER__INIT);
+    }
+
     while (1) {
-        const int rxBytes = uart_read_bytes(UART_NUM_1, data, 2048,
+        const int rxBytes = uart_read_bytes(UART_NUM_1, buffer + buffer_len, 
+                                            max_buffer_size - buffer_len,
                                             1000 / portTICK_PERIOD_MS);
         if (rxBytes > 0) {
-            data[rxBytes] = 0;
+            buffer_len += rxBytes;
 
-            // // TODO: remove after testing
-            // ESP_LOGI(RX_TASK_TAG, "Read %d bytes: '%s' |1ca5c|", rxBytes,
-            //          (char*)data);
-            // ESP_LOG_BUFFER_HEXDUMP(RX_TASK_TAG, data, rxBytes, ESP_LOG_INFO);
+            while (buffer_len >= len_header) {
+                FrameHeader* msg_header = frame_header__unpack(NULL, len_header, buffer);
+                if (msg_header == NULL) {
+                    // Unpacking failed, shift by 1 to resync
+                    memmove(buffer, buffer + 1, buffer_len - 1);
+                    buffer_len -= 1;
+                    continue;
+                }
 
-            __AUTO_FREE_MSG__ FramePayload* recieved_data =
-                create_frame_payload(data, rxBytes);
-            if (recieved_data) {
-                ESP_LOGI(RX_TASK_TAG, "Successfully processed message");
+                size_t total_frame_size = len_header + msg_header->next_message_size;
+                
+                if (buffer_len >= total_frame_size) {
+                    __AUTO_FREE_MSG__ FramePayload* recieved_data =
+                        create_frame_payload(buffer, total_frame_size);
+                    if (recieved_data) {
+                        ESP_LOGD(RX_TASK_TAG, "Successfully processed message");
+                    }
+                    
+                    memmove(buffer, buffer + total_frame_size, buffer_len - total_frame_size);
+                    buffer_len -= total_frame_size;
+                    frame_header__free_unpacked(msg_header, NULL);
+                } else {
+                    // Not enough data for the full frame yet
+                    frame_header__free_unpacked(msg_header, NULL);
+                    break;
+                }
+            }
+
+            if (buffer_len == max_buffer_size) {
+                ESP_LOGE(RX_TASK_TAG, "Buffer full, dropping data to resync");
+                buffer_len = 0;
             }
         }
     }
-    free(data);
+    free(buffer);
 }
 
 void uart_init(void) {
