@@ -31,28 +31,38 @@ static esp_err_t handler_get_api_status(httpd_req_t* req) {
 #undef STR
 }
 
-static esp_err_t handler_get_api_led(httpd_req_t* req) {
-#define STR "LED status"
-    char* buf;
-    size_t buf_len;
+static esp_err_t get_api_query_buf(httpd_req_t* req, char** query_buf) {
     httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
 
-    buf_len = httpd_req_get_url_query_len(req) + 1;
-    if (buf_len < 1) {
+    size_t buf_len = httpd_req_get_url_query_len(req) + 1;
+    if (buf_len <= 1) {
         ESP_LOGI(TAG, "No request params set!");
-        return handler_api_error(req);
+        return ESP_FAIL;
     }
     if (buf_len > 1024) {
         ESP_LOGI(TAG, "Request params too long!");
-        return handler_api_error(req);
+        return ESP_FAIL;
     }
-    buf = malloc(buf_len);
+    *query_buf = malloc(buf_len);
+    if (!*query_buf) {
+        return ESP_FAIL;
+    }
 
-    if (httpd_req_get_url_query_str(req, buf, buf_len) != ESP_OK) {
+    if (httpd_req_get_url_query_str(req, *query_buf, buf_len) != ESP_OK) {
         ESP_LOGI(TAG, "cannot load query string");
-        free(buf);
+        free(*query_buf);
+        return ESP_FAIL;
+    }
+    return ESP_OK;
+}
+
+static esp_err_t handler_get_api_led(httpd_req_t* req) {
+#define STR "LED status"
+    char* buf;
+    if (get_api_query_buf(req, &buf) != ESP_OK) {
         return handler_api_error(req);
     }
+
     char param[32];
     if (httpd_query_key_value(buf, "LED1", param, sizeof(param)) == ESP_OK) {
         ESP_LOGI(TAG, "Found URL query parameter => query1=%s", param);
@@ -75,6 +85,61 @@ static esp_err_t handler_get_api_led(httpd_req_t* req) {
     free(buf);
     return ESP_OK;
 #undef STR
+}
+
+static esp_err_t handler_get_api_program1(httpd_req_t* req) {
+    char* buf;
+    if (get_api_query_buf(req, &buf) != ESP_OK) {
+        return handler_api_error(req);
+    }
+
+    char param[32];
+    if (httpd_query_key_value(buf, "en", param, sizeof(param)) == ESP_OK) {
+        uint8_t req_val = atoi(param);
+        gpio_set_level(2, req_val);
+        send_test_int_config(req_val > 0);
+    }
+    
+    const char* resp = "Program 1 status";
+    httpd_resp_send(req, resp, strlen(resp));
+    free(buf);
+    return ESP_OK;
+}
+
+static esp_err_t handler_get_api_program2(httpd_req_t* req) {
+    char* buf;
+    if (get_api_query_buf(req, &buf) != ESP_OK) {
+        return handler_api_error(req);
+    }
+
+    char param[32];
+    if (httpd_query_key_value(buf, "en", param, sizeof(param)) == ESP_OK) {
+        uint8_t req_val = atoi(param);
+        send_test_bandwidth_config(req_val > 0, 1024);
+    }
+    
+    const char* resp = "Program 2 status";
+    httpd_resp_send(req, resp, strlen(resp));
+    free(buf);
+    return ESP_OK;
+}
+
+static esp_err_t handler_get_api_program3(httpd_req_t* req) {
+    char* buf;
+    if (get_api_query_buf(req, &buf) != ESP_OK) {
+        return handler_api_error(req);
+    }
+
+    char param[32];
+    if (httpd_query_key_value(buf, "en", param, sizeof(param)) == ESP_OK) {
+        uint8_t req_val = atoi(param);
+        send_stream_config(req_val > 0);
+    }
+    
+    const char* resp = "Program 3 status";
+    httpd_resp_send(req, resp, strlen(resp));
+    free(buf);
+    return ESP_OK;
 }
 
 typedef struct {
@@ -148,6 +213,24 @@ static const httpd_uri_t default_paths[] = {
         .uri = "/api/led",
         .method = HTTP_GET,
         .handler = handler_get_api_led,
+        .user_ctx = NULL,
+    },
+    {
+        .uri = "/api/program1",
+        .method = HTTP_GET,
+        .handler = handler_get_api_program1,
+        .user_ctx = NULL,
+    },
+    {
+        .uri = "/api/program2",
+        .method = HTTP_GET,
+        .handler = handler_get_api_program2,
+        .user_ctx = NULL,
+    },
+    {
+        .uri = "/api/program3",
+        .method = HTTP_GET,
+        .handler = handler_get_api_program3,
         .user_ctx = NULL,
     },
     {

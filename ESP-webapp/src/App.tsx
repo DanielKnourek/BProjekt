@@ -4,6 +4,7 @@ import LedControl from "@components/LedControl";
 import ResponseLog from "@components/ResponseLog";
 import { LogContext, Logger } from "@lib/Logger";
 import { ENV, getAPIuri } from "./lib/env";
+import ProgramControls from "@components/ProgramControls";
 
 const App = () => {
   const [Logs, setLogs] = useState<Array<string>>([]);
@@ -76,20 +77,7 @@ const App = () => {
           <div className="mb-4 flex h-48 items-center justify-center rounded bg-gray-50 dark:bg-gray-800">
             <p className="text-2xl text-gray-400 dark:text-gray-500">+</p>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex h-28 items-center justify-center rounded bg-gray-50 dark:bg-gray-800">
-              <p className="text-2xl text-gray-400 dark:text-gray-500">+</p>
-            </div>
-            <div className="flex h-28 items-center justify-center rounded bg-gray-50 dark:bg-gray-800">
-              <p className="text-2xl text-gray-400 dark:text-gray-500">+</p>
-            </div>
-            <div className="flex h-28 items-center justify-center rounded bg-gray-50 dark:bg-gray-800">
-              <p className="text-2xl text-gray-400 dark:text-gray-500">+</p>
-            </div>
-            <div className="flex h-28 items-center justify-center rounded bg-gray-50 dark:bg-gray-800">
-              <p className="text-2xl text-gray-400 dark:text-gray-500">+</p>
-            </div>
-          </div>
+          <ProgramControls />
         </Layout>
       </LogContext.Provider>
     </>
