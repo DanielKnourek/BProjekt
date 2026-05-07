@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Layout from "@src/Layout";
 import LedControl from "@components/LedControl";
 import ResponseLog from "@components/ResponseLog";
 import { LogContext, Logger } from "@lib/Logger";
 import { ENV, getAPIuri } from "./lib/env";
 import ProgramControls from "@components/ProgramControls";
-import StreamViewer from "@components/StreamViewer";
+import StreamViewer, { StreamViewerHandle } from "@components/StreamViewer";
 
 const App = () => {
+  const streamViewerRef = useRef<StreamViewerHandle>(null);
   const [streamSampleRate, setStreamSampleRate] = useState<number>(1000);
   const [Logs, setLogs] = useState<Array<string>>([]);
   let logger: Logger = {
@@ -24,8 +25,16 @@ const App = () => {
     <>
       <LogContext.Provider value={logger}>
         <Layout>
-          <ProgramControls streamSampleRate={streamSampleRate} setStreamSampleRate={setStreamSampleRate} />
-          <StreamViewer sampleRate={streamSampleRate} />
+          <ProgramControls 
+            streamSampleRate={streamSampleRate} 
+            setStreamSampleRate={setStreamSampleRate} 
+            onStreamEnable={() => streamViewerRef.current?.startStream()}
+            onStreamDisable={() => streamViewerRef.current?.stopStream()}
+          />
+          <StreamViewer 
+            ref={streamViewerRef}
+            sampleRate={streamSampleRate} 
+          />
           <div className="mb-4 grid grid-cols-2 gap-4">
             <div className="flex h-24 items-center justify-center rounded bg-gray-50 dark:bg-gray-800">
               <p className="text-2xl text-gray-400 dark:text-gray-500">

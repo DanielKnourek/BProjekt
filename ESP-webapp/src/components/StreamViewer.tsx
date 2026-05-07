@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext, useEffect } from "react";
+import React, { useState, useRef, useContext, useEffect, forwardRef, useImperativeHandle } from "react";
 import CanvasGraph from "./CanvasGraph";
 import { ENV, getAPIuri } from "@lib/env";
 import { LogContext, addLog } from "@lib/Logger";
@@ -6,8 +6,12 @@ import { LogContext, addLog } from "@lib/Logger";
 export interface StreamViewerProps {
   sampleRate?: number;
 }
+export interface StreamViewerHandle {
+  startStream: () => void;
+  stopStream: () => void;
+}
 
-const StreamViewer: React.FC<StreamViewerProps> = ({ sampleRate = 1000 }) => {
+const StreamViewer = forwardRef<StreamViewerHandle, StreamViewerProps>(({ sampleRate = 1000 }, ref) => {
   const Logger = useContext(LogContext);
   const [streamData, setStreamData] = useState<number[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -170,6 +174,11 @@ const StreamViewer: React.FC<StreamViewerProps> = ({ sampleRate = 1000 }) => {
     }
   };
 
+  useImperativeHandle(ref, () => ({
+    startStream,
+    stopStream,
+  }));
+
   return (
     <div className="mb-4 rounded bg-gray-50 p-4 dark:bg-gray-800">
       <div className="flex items-center justify-between mb-4">
@@ -235,6 +244,6 @@ const StreamViewer: React.FC<StreamViewerProps> = ({ sampleRate = 1000 }) => {
       </div>
     </div>
   );
-};
+});
 
 export default StreamViewer;

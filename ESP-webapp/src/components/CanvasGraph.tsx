@@ -2,20 +2,17 @@ import React, { useRef, useEffect } from "react";
 
 interface CanvasGraphProps {
   data: number[];
-  width?: number;
-  height?: number;
   lineColor?: string;
   backgroundColor?: string;
 }
 
 const CanvasGraph: React.FC<CanvasGraphProps> = ({
   data,
-  width = 600,
-  height = 300,
   lineColor = "#10b981", // Emerald 500
   backgroundColor = "transparent",
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   
   // Track historical min and max so the graph only expands, never shrinks
   const minRef = useRef<number>(Infinity);
@@ -32,11 +29,25 @@ const CanvasGraph: React.FC<CanvasGraphProps> = ({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Sync canvas internal resolution with its display size to prevent stretching
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const drawWidth = rect.width;
+    const drawHeight = rect.height;
+
+    if (canvas.width !== drawWidth * dpr || canvas.height !== drawHeight * dpr) {
+      canvas.width = drawWidth * dpr;
+      canvas.height = drawHeight * dpr;
+    }
+    
+    // Scale the context so we can continue using CSS-like coordinates
+    ctx.scale(dpr, dpr);
+
     // Clear canvas
-    ctx.clearRect(0, 0, width, height);
+    ctx.clearRect(0, 0, drawWidth, drawHeight);
     if (backgroundColor !== "transparent") {
       ctx.fillStyle = backgroundColor;
-      ctx.fillRect(0, 0, width, height);
+      ctx.fillRect(0, 0, drawWidth, drawHeight);
     }
 
     if (data.length === 0) return;
@@ -62,9 +73,9 @@ const CanvasGraph: React.FC<CanvasGraphProps> = ({
 
     data.forEach((val, i) => {
       // X coordinate spaced evenly
-      const x = (i / (data.length - 1 || 1)) * width;
+      const x = (i / (data.length - 1 || 1)) * drawWidth;
       // Y coordinate mapped to canvas height (inverted because Y grows downwards)
-      const y = height - ((val - min) / range) * height;
+      const y = drawHeight - ((val - min) / range) * drawHeight;
 
       if (i === 0) {
         ctx.moveTo(x, y);
@@ -84,15 +95,13 @@ const CanvasGraph: React.FC<CanvasGraphProps> = ({
     ctx.fillText(`Max: ${max.toLocaleString()}`, 8, 8);
     
     ctx.textBaseline = "bottom";
-    ctx.fillText(`Min: ${min.toLocaleString()}`, 8, height - 8);
-  }, [data, width, height, lineColor, backgroundColor]);
+    ctx.fillText(`Min: ${min.toLocaleString()}`, 8, drawHeight - 8);
+  }, [data, lineColor, backgroundColor]);
 
   return (
-    <div className="relative h-full w-full group">
+    <div ref={containerRef} className="relative h-full w-full group">
       <canvas
         ref={canvasRef}
-        width={width}
-        height={height}
         className="h-full w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800"
       />
       <button

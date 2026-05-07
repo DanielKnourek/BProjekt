@@ -5,9 +5,16 @@ import { ENV, getAPIuri } from "@lib/env";
 export interface ProgramControlsProps {
   streamSampleRate?: number;
   setStreamSampleRate?: (val: number) => void;
+  onStreamEnable?: () => void;
+  onStreamDisable?: () => void;
 }
 
-const ProgramControls: React.FC<ProgramControlsProps> = ({ streamSampleRate: propRate, setStreamSampleRate: propSetRate }) => {
+const ProgramControls: React.FC<ProgramControlsProps> = ({ 
+  streamSampleRate: propRate, 
+  setStreamSampleRate: propSetRate,
+  onStreamEnable,
+  onStreamDisable
+}) => {
   const Logger = useContext(LogContext);
 
   // States for Program 2: Test Bandwidth
@@ -117,18 +124,22 @@ const ProgramControls: React.FC<ProgramControlsProps> = ({ streamSampleRate: pro
         <div className="flex gap-2 mb-4">
           <button
             className="flex-1 rounded bg-green-600 py-2 text-white transition-colors hover:bg-green-700 focus:outline-none"
-            onClick={() =>
+            onClick={() => {
               toggleProgram("stream", true, {
                 sample_rate_hz: streamSampleRate,
                 samples_per_frame: streamSamplesPerFrame,
-              })
-            }
+              });
+              onStreamEnable?.();
+            }}
           >
             Enable
           </button>
           <button
             className="flex-1 rounded bg-red-600 py-2 text-white transition-colors hover:bg-red-700 focus:outline-none"
-            onClick={() => toggleProgram("stream", false)}
+            onClick={() => {
+              toggleProgram("stream", false);
+              onStreamDisable?.();
+            }}
           >
             Disable
           </button>
