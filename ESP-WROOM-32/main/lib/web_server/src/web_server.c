@@ -5,6 +5,8 @@
 
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
+#include <inttypes.h>
+#include <string.h>
 
 // handler specific
 #include "driver/gpio.h"
@@ -188,6 +190,121 @@ static esp_err_t handler_get_api_random(httpd_req_t* req) {
     return ESP_OK;
 }
 
+#define MAX_STREAM_SUBSCRIBERS 4
+
+typedef struct {
+    int32_t *adc_values;
+    size_t n_adc_values;
+} stream_data_payload_t;
+
+static QueueHandle_t stream_queues[MAX_STREAM_SUBSCRIBERS] = {NULL};
+static SemaphoreHandle_t stream_mutex = NULL;
+
+void web_server_push_adc_values(const int32_t *adc_values, size_t n_adc_values) {
+    if (n_adc_values == 0 || stream_mutex == NULL) return;
+
+    if (xSemaphoreTake(stream_mutex, portMAX_DELAY) == pdTRUE) {
+        for(int i = 0; i < MAX_STREAM_SUBSCRIBERS; i++) {
+            if(stream_queues[i] != NULL) {
+                stream_data_payload_t payload;
+                payload.n_adc_values = n_adc_values;
+                payload.adc_values = malloc(n_adc_values * sizeof(int32_t));
+                if (payload.adc_values) {
+                    memcpy(payload.adc_values, adc_values, n_adc_values * sizeof(int32_t));
+                    if (xQueueSend(stream_queues[i], &payload, 0) != pdPASS) {
+                        free(payload.adc_values);
+                    }
+                }
+            }
+        }
+        xSemaphoreGive(stream_mutex);
+    }
+}
+
+static void program3stream_sse_task(void *arg) {
+    sse_task_ctx_t *ctx = (sse_task_ctx_t *)arg;
+    httpd_req_t *req = ctx->req;
+
+    QueueHandle_t q = xQueueCreate(10, sizeof(stream_data_payload_t));
+    if (!q) {
+        httpd_req_async_handler_complete(req);
+        free(ctx);
+        vTaskDelete(NULL);
+        return;
+    }
+    
+    int q_idx = -1;
+    if (xSemaphoreTake(stream_mutex, portMAX_DELAY) == pdTRUE) {
+        for(int i = 0; i < MAX_STREAM_SUBSCRIBERS; i++) {
+            if(stream_queues[i] == NULL) {
+                stream_queues[i] = q;
+                q_idx = i;
+                break;
+            }
+        }
+        xSemaphoreGive(stream_mutex);
+    }
+
+    if (q_idx == -1) {
+        ESP_LOGE(TAG, "Max stream subscribers reached");
+        vQueueDelete(q);
+        httpd_req_async_handler_complete(req);
+        free(ctx);
+        vTaskDelete(NULL);
+        return;
+    }
+
+    stream_data_payload_t payload;
+
+    while (1) {
+        if (xQueueReceive(q, &payload, portMAX_DELAY) == pdTRUE) {
+            size_t bytes_to_send = payload.n_adc_values * sizeof(int32_t);
+            esp_err_t err = httpd_resp_send_chunk(req, (const char*)payload.adc_values, bytes_to_send);
+            free(payload.adc_values);
+
+            if (err != ESP_OK) {
+                ESP_LOGI(TAG, "Client disconnected from stream");
+                break;
+            }
+        }
+    }
+
+    if (xSemaphoreTake(stream_mutex, portMAX_DELAY) == pdTRUE) {
+        stream_queues[q_idx] = NULL;
+        xSemaphoreGive(stream_mutex);
+    }
+    
+    while(xQueueReceive(q, &payload, 0) == pdTRUE) {
+        free(payload.adc_values);
+    }
+    
+    vQueueDelete(q);
+    
+    httpd_req_async_handler_complete(req);
+    free(ctx);
+    vTaskDelete(NULL);
+}
+
+static esp_err_t handler_get_api_program3stream(httpd_req_t* req) {
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+    httpd_resp_set_hdr(req, "Content-Type", "application/octet-stream");
+
+    httpd_req_t *req_copy = NULL;
+    if (httpd_req_async_handler_begin(req, &req_copy) != ESP_OK) {
+        return ESP_FAIL;
+    }
+
+    sse_task_ctx_t *ctx = malloc(sizeof(sse_task_ctx_t));
+    if (!ctx) {
+        return ESP_FAIL;
+    }
+    ctx->req = req_copy;
+    
+    xTaskCreate(program3stream_sse_task, "prog3str_sse", 4096, ctx, 5, NULL);
+
+    return ESP_OK;
+}
+
 static esp_err_t app_frontend_handler(httpd_req_t* req) {
     extern const unsigned char upload_script_start[] asm("_binary_index_html_start");
     extern const unsigned char upload_script_end[]   asm("_binary_index_html_end");
@@ -209,7 +326,7 @@ static const httpd_uri_t default_paths[] = {
         .handler = handler_get_api_status,
         .user_ctx = NULL,
     },
-    {
+    { // TODO: scheduled for removal (demo endpoint)
         .uri = "/api/led",
         .method = HTTP_GET,
         .handler = handler_get_api_led,
@@ -233,10 +350,16 @@ static const httpd_uri_t default_paths[] = {
         .handler = handler_get_api_program3,
         .user_ctx = NULL,
     },
-    {
+    { // TODO: scheduled for removal (demo endpoint)
         .uri = "/api/random",
         .method = HTTP_GET,
         .handler = handler_get_api_random,
+        .user_ctx = NULL,
+    },
+    {
+        .uri = "/api/program3stream",
+        .method = HTTP_GET,
+        .handler = handler_get_api_program3stream,
         .user_ctx = NULL,
     },
     {
@@ -295,5 +418,11 @@ httpd_handle_t* server_handle;
  */
 void web_server_start() {
     ESP_LOGI(TAG, "starting http server at port %d", HTTP_SERVER_PORT);
+    
+    if (stream_mutex == NULL) {
+        stream_mutex = xSemaphoreCreateMutex();
+    }
+    
     server_handle = start_webserver();
+    serial_link_set_stream_adc_cb(web_server_push_adc_values);
 }

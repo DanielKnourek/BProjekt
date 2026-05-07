@@ -8,7 +8,8 @@
     "build": "tsc && vite build",
     "buildgz": "tsc && vite build --mode gz",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "copygz": "cp dist_gz/* ../ESP-WROOM-32/main/lib/web_server/dist_gz"
   },
   "dependencies": {
     "react": "^18.2.0",

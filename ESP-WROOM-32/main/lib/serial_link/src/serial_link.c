@@ -9,6 +9,12 @@
 #include "esp_rom_crc.h"
 #include <inttypes.h>
 
+static stream_adc_cb_t g_stream_adc_cb = NULL;
+
+void serial_link_set_stream_adc_cb(stream_adc_cb_t cb) {
+    g_stream_adc_cb = cb;
+}
+
 static const char* TAG = "serial_link.c";
 
 static const int RX_BUF_SIZE = 2048;
@@ -222,22 +228,27 @@ FramePayload* create_frame_payload(uint8_t* data, size_t rxBytes) {
                      msg_payload->test_bandwidth_config->enable ? "true" : "false");
             break;
         case FRAME_PAYLOAD__PAYLOAD_STREAM_DATA: {
-            static uint32_t stream_msg_count = 0;
-            stream_msg_count++;
             
-            // Only log 1 in every 50 messages to prevent flooding the console and triggering the watchdog
-            if (stream_msg_count % 50 == 1) {
-                ESP_LOGI(TAG, "Payload: StreamData with %zu ADCs, %zu DACs (msg #%" PRIu32 ")",
-                         msg_payload->stream_data->n_adc_values, msg_payload->stream_data->n_dac_values, stream_msg_count);
+            // TODO: remove after testing, flooding the console, printing recived values
+            // static uint32_t stream_msg_count = 0;
+            // stream_msg_count++;
+            // // Only log 1 in every 50 messages to prevent flooding the console and triggering the watchdog
+            // if (stream_msg_count % 50 == 1) {
+            //     ESP_LOGI(TAG, "Payload: StreamData with %zu ADCs, %zu DACs (msg #%" PRIu32 ")",
+            //              msg_payload->stream_data->n_adc_values, msg_payload->stream_data->n_dac_values, stream_msg_count);
                 
-                if (msg_payload->stream_data->n_adc_values > 0) {
-                    char val_buf[256] = {0};
-                    int offset = 0;
-                    for (size_t i = 0; i < msg_payload->stream_data->n_adc_values && i < 15; i++) {
-                        offset += snprintf(val_buf + offset, sizeof(val_buf) - offset, "%" PRIi32 " ", msg_payload->stream_data->adc_values[i]);
-                    }
-                    ESP_LOGI(TAG, "  ADC values: %s%s", val_buf, msg_payload->stream_data->n_adc_values > 15 ? "..." : "");
-                }
+            //     if (msg_payload->stream_data->n_adc_values > 0) {
+            //         char val_buf[256] = {0};
+            //         int offset = 0;
+            //         for (size_t i = 0; i < msg_payload->stream_data->n_adc_values && i < 15; i++) {
+            //             offset += snprintf(val_buf + offset, sizeof(val_buf) - offset, "%" PRIi32 " ", msg_payload->stream_data->adc_values[i]);
+            //         }
+            //         ESP_LOGI(TAG, "  ADC values: %s%s", val_buf, msg_payload->stream_data->n_adc_values > 15 ? "..." : "");
+            //     }
+            // }
+
+            if (msg_payload->stream_data->n_adc_values > 0 && g_stream_adc_cb) {
+                g_stream_adc_cb(msg_payload->stream_data->adc_values, msg_payload->stream_data->n_adc_values);
             }
             break;
         }
