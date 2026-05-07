@@ -7,6 +7,7 @@
 
 #include "esp_log.h"
 #include "esp_rom_crc.h"
+#include "messenger.pb-c.h"
 #include <inttypes.h>
 
 static stream_adc_cb_t g_stream_adc_cb = NULL;
@@ -237,9 +238,12 @@ FramePayload* create_frame_payload(uint8_t* data, size_t rxBytes) {
             break;
         case FRAME_PAYLOAD__PAYLOAD_STREAM_DATA: {
             static int print_count = 0;
+            static size_t byte_count = 0;
+            byte_count += frame_payload__get_packed_size(msg_payload);
             print_count++;
             if (print_count % 50 == 1) {
-            ESP_LOGI(TAG, "Recieved values: %zu x50", msg_payload->stream_data->n_adc_values);
+            ESP_LOGI(TAG, "Recieved values: %zu x50, total bytes=%zu", msg_payload->stream_data->n_adc_values, byte_count);
+            byte_count = 0;
             }
             // TODO: remove after testing, flooding the console, printing recived values
             // static uint32_t stream_msg_count = 0;
@@ -290,10 +294,29 @@ static void rx_task(void* arg) {
         len_header = frame_header__get_packed_size(&(FrameHeader)FRAME_HEADER__INIT);
     }
 
+    size_t expected_frame_size = 0;
+
     while (1) {
+        size_t available = 0;
+        uart_get_buffered_data_len(UART_NUM_1, &available);
+        
+        size_t to_read = max_buffer_size - buffer_len;
+        if (to_read > 0) {
+            size_t target_read = 1;
+            if (available > 0) {
+                target_read = available;
+            } else {
+                if (expected_frame_size > buffer_len) {
+                    target_read = expected_frame_size - buffer_len;
+                } else if (buffer_len < len_header) {
+                    target_read = len_header - buffer_len;
+                }
+            }
+            to_read = target_read > to_read ? to_read : target_read;
+        }
+
         const int rxBytes = uart_read_bytes(UART_NUM_1, buffer + buffer_len, 
-                                            max_buffer_size - buffer_len,
-                                            1000 / portTICK_PERIOD_MS);
+                                            to_read, 1000 / portTICK_PERIOD_MS);
         if (rxBytes > 0) {
             buffer_len += rxBytes;
 
@@ -303,6 +326,7 @@ static void rx_task(void* arg) {
                     // Unpacking failed, shift by 1 to resync
                     memmove(buffer, buffer + 1, buffer_len - 1);
                     buffer_len -= 1;
+                    expected_frame_size = 0; // Reset expectation
                     continue;
                 }
 
@@ -318,8 +342,10 @@ static void rx_task(void* arg) {
                     memmove(buffer, buffer + total_frame_size, buffer_len - total_frame_size);
                     buffer_len -= total_frame_size;
                     frame_header__free_unpacked(msg_header, NULL);
+                    expected_frame_size = 0; // Reset expectation for next frame
                 } else {
                     // Not enough data for the full frame yet
+                    expected_frame_size = total_frame_size; // Save so we can wait for exact bytes
                     frame_header__free_unpacked(msg_header, NULL);
                     break;
                 }
@@ -328,6 +354,7 @@ static void rx_task(void* arg) {
             if (buffer_len == max_buffer_size) {
                 ESP_LOGE(RX_TASK_TAG, "Buffer full, dropping data to resync");
                 buffer_len = 0;
+                expected_frame_size = 0; // Reset
             }
         }
     }
