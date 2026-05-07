@@ -48,7 +48,7 @@ void ProgramMgr_SetStreamConfig(StreamConfig *config) {
     stream_config = *config;
 
     HAL_GPIO_WritePin(ARDUINO_PWM_CS_D5_GPIO_Port, ARDUINO_PWM_CS_D5_Pin, 
-        test_bandwidth_config.enable ? GPIO_PIN_SET : GPIO_PIN_RESET);
+        stream_config.enable ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
 
 void ProgramMgr_Process(void) {
