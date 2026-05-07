@@ -24,6 +24,8 @@ const App = () => {
     <>
       <LogContext.Provider value={logger}>
         <Layout>
+          <ProgramControls streamSampleRate={streamSampleRate} setStreamSampleRate={setStreamSampleRate} />
+          <StreamViewer sampleRate={streamSampleRate} />
           <div className="mb-4 grid grid-cols-2 gap-4">
             <div className="flex h-24 items-center justify-center rounded bg-gray-50 dark:bg-gray-800">
               <p className="text-2xl text-gray-400 dark:text-gray-500">
@@ -76,8 +78,6 @@ const App = () => {
               </div>
             </div>
           </div>
-          <ProgramControls streamSampleRate={streamSampleRate} setStreamSampleRate={setStreamSampleRate} />
-          <StreamViewer sampleRate={streamSampleRate} />
         </Layout>
       </LogContext.Provider>
     </>

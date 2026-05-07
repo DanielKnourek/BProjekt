@@ -12,7 +12,7 @@ const StreamViewer: React.FC<StreamViewerProps> = ({ sampleRate = 1000 }) => {
   const [streamData, setStreamData] = useState<number[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [maxPoints, setMaxPoints] = useState<number>(200);
-  const [bufferSeconds, setBufferSeconds] = useState<number>(2);
+  const [bufferSeconds, setBufferSeconds] = useState<number>(1);
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const maxPointsRef = useRef(maxPoints);
@@ -174,7 +174,7 @@ const StreamViewer: React.FC<StreamViewerProps> = ({ sampleRate = 1000 }) => {
     <div className="mb-4 rounded bg-gray-50 p-4 dark:bg-gray-800">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
-          Program 3: Live Stream
+          Program 3: ADC stream
         </h3>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-4">
@@ -183,7 +183,7 @@ const StreamViewer: React.FC<StreamViewerProps> = ({ sampleRate = 1000 }) => {
               <input
                 type="range"
                 min="0"
-                max="10"
+                max="5"
                 step="1"
                 className="w-16 cursor-pointer accent-blue-600"
                 value={bufferSeconds}
