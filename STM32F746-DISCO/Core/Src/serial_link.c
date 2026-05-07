@@ -42,6 +42,9 @@ void SerialLink_ErrorCallback(UART_HandleTypeDef *huart) {
 static void SerialLink_SendPayload(FramePayload *payload) {
     if (!serial_huart) return;
 
+    // Ensure previous transmission is complete before writing to tx_buffer!
+    while (serial_huart->gState != HAL_UART_STATE_READY) {}
+
     FrameHeader header = FrameHeader_init_zero;
     
     // Calculate the size of the encoded payload
@@ -58,8 +61,6 @@ static void SerialLink_SendPayload(FramePayload *payload) {
     }
 
     if (status) {
-        // Ensure previous transmission is complete before starting a new one
-        while (serial_huart->gState != HAL_UART_STATE_READY) {}
         HAL_UART_Transmit_DMA(serial_huart, tx_buffer, stream.bytes_written);
     }
 }

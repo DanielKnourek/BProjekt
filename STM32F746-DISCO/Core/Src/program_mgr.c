@@ -126,9 +126,12 @@ void ProgramMgr_Process(void) {
         };
         static uint32_t sine_index = 0;
 
-        // Use a while loop to catch up on missed samples if UART was blocking
-        while (tick - last_sample_tick >= sample_interval_ms) {
-            last_sample_tick += sample_interval_ms;
+        if (tick - last_sample_tick >= sample_interval_ms) {
+            if (tick - last_sample_tick > sample_interval_ms * 2) {
+                last_sample_tick = tick;
+            } else {
+                last_sample_tick += sample_interval_ms;
+            }
             
             // 1. Output next sine wave value to DAC (PWM on A3)
             extern TIM_HandleTypeDef htim13;
