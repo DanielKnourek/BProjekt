@@ -8,6 +8,7 @@ import ProgramControls from "@components/ProgramControls";
 import StreamViewer from "@components/StreamViewer";
 
 const App = () => {
+  const [streamSampleRate, setStreamSampleRate] = useState<number>(1000);
   const [Logs, setLogs] = useState<Array<string>>([]);
   let logger: Logger = {
     get: Logs,
@@ -75,8 +76,8 @@ const App = () => {
               </div>
             </div>
           </div>
-          <StreamViewer />
-          <ProgramControls />
+          <ProgramControls streamSampleRate={streamSampleRate} setStreamSampleRate={setStreamSampleRate} />
+          <StreamViewer sampleRate={streamSampleRate} />
         </Layout>
       </LogContext.Provider>
     </>

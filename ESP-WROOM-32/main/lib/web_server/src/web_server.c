@@ -72,16 +72,6 @@ static esp_err_t handler_get_api_led(httpd_req_t* req) {
         gpio_set_level(2, led1_req);
         send_test_int_config(led1_req > 0);
     }
-    if (httpd_query_key_value(buf, "LED2", param, sizeof(param)) == ESP_OK) {
-        ESP_LOGI(TAG, "Found URL query parameter => query2=%s", param);
-        uint8_t led2_req = atoi(param);
-        send_test_bandwidth_config(led2_req > 0, 1024);
-    }
-    if (httpd_query_key_value(buf, "PROGRAM3", param, sizeof(param)) == ESP_OK) {
-        ESP_LOGI(TAG, "Toggling Program 3 via STM32");
-        uint8_t program3_req = atoi(param);
-        send_stream_config(program3_req > 0);
-    }
     httpd_resp_send(req, STR, strlen(STR));
 
     free(buf);
@@ -135,7 +125,18 @@ static esp_err_t handler_get_api_program3(httpd_req_t* req) {
     char param[32];
     if (httpd_query_key_value(buf, "en", param, sizeof(param)) == ESP_OK) {
         uint8_t req_val = atoi(param);
-        send_stream_config(req_val > 0);
+        uint32_t sample_rate_hz = 0;
+        uint32_t samples_per_frame = 0;
+        
+        if (httpd_query_key_value(buf, "sample_rate_hz", param, sizeof(param)) == ESP_OK) {
+            sample_rate_hz = strtoul(param, NULL, 10);
+        }
+        
+        if (httpd_query_key_value(buf, "samples_per_frame", param, sizeof(param)) == ESP_OK) {
+            samples_per_frame = strtoul(param, NULL, 10);
+        }
+        
+        send_stream_config(req_val > 0, sample_rate_hz, samples_per_frame);
     }
     
     const char* resp = "Program 3 status";

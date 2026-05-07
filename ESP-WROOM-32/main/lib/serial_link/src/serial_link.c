@@ -150,10 +150,18 @@ void send_test_bandwidth_config(bool enable, uint32_t payload_size) {
     send_frame(&payload);
 }
 
-void send_stream_config(bool enable) {
+void send_stream_config(bool enable, uint32_t sample_rate_hz, uint32_t samples_per_frame) {
     FramePayload payload = FRAME_PAYLOAD__INIT;
     StreamConfig config = STREAM_CONFIG__INIT;
     config.enable = enable;
+    if (sample_rate_hz > 0) {
+        config.has_sample_rate_hz = 1;
+        config.sample_rate_hz = sample_rate_hz;
+    }
+    if (samples_per_frame > 0) {
+        config.has_samples_per_frame = 1;
+        config.samples_per_frame = samples_per_frame;
+    }
     payload.payload_case = FRAME_PAYLOAD__PAYLOAD_STREAM_CONFIG;
     payload.stream_config = &config;
     send_frame(&payload);
@@ -228,7 +236,11 @@ FramePayload* create_frame_payload(uint8_t* data, size_t rxBytes) {
                      msg_payload->test_bandwidth_config->enable ? "true" : "false");
             break;
         case FRAME_PAYLOAD__PAYLOAD_STREAM_DATA: {
-            
+            static int print_count = 0;
+            print_count++;
+            if (print_count % 50 == 1) {
+            ESP_LOGI(TAG, "Recieved values: %zu x50", msg_payload->stream_data->n_adc_values);
+            }
             // TODO: remove after testing, flooding the console, printing recived values
             // static uint32_t stream_msg_count = 0;
             // stream_msg_count++;

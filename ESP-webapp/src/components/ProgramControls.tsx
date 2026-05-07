@@ -2,14 +2,21 @@ import React, { useState, useContext } from "react";
 import { LogContext, addLog } from "@lib/Logger";
 import { ENV, getAPIuri } from "@lib/env";
 
-const ProgramControls: React.FC = () => {
+export interface ProgramControlsProps {
+  streamSampleRate?: number;
+  setStreamSampleRate?: (val: number) => void;
+}
+
+const ProgramControls: React.FC<ProgramControlsProps> = ({ streamSampleRate: propRate, setStreamSampleRate: propSetRate }) => {
   const Logger = useContext(LogContext);
 
   // States for Program 2: Test Bandwidth
   const [bwPayloadSize, setBwPayloadSize] = useState<number>(1024);
 
   // States for Program 3: Streaming
-  const [streamSampleRate, setStreamSampleRate] = useState<number>(1000);
+  const [localSampleRate, setLocalSampleRate] = useState<number>(1000);
+  const streamSampleRate = propRate ?? localSampleRate;
+  const setStreamSampleRate = propSetRate ?? setLocalSampleRate;
   const [streamSamplesPerFrame, setStreamSamplesPerFrame] = useState<number>(100);
 
   const programPaths: Record<string, string> = {
