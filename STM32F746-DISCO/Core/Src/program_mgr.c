@@ -103,12 +103,13 @@ void ProgramMgr_Process(void) {
 
     // 3. Process Stream
     if (stream_config.enable) {
-        // Statically write config values
-        uint32_t samples_per_frame = 10;
-        uint32_t frame_rate_hz = 50; // Send 10 frames per second
-        uint32_t sample_interval_ms = 1000 / (samples_per_frame * frame_rate_hz); // 10 ms per sample
+        // Extract config values (with defaults if not provided)
+        uint32_t samples_per_frame = stream_config.has_samples_per_frame ? stream_config.samples_per_frame : 10;
+        if (samples_per_frame > 1000) samples_per_frame = 1000;
+        uint32_t sample_rate_hz = stream_config.has_sample_rate_hz ? stream_config.sample_rate_hz : 500;
+        uint32_t sample_interval_ms = (sample_rate_hz > 0) ? (1000 / sample_rate_hz) : 10;
         
-        static int32_t adc_buffer[10];
+        static int32_t adc_buffer[1000]; // Max size matching protobuf definition
         static uint32_t sample_index = 0;
         static uint32_t last_sample_tick = 0;
         
@@ -150,7 +151,7 @@ void ProgramMgr_Process(void) {
             
             sample_index++;
             
-            // 3. When buffer has 10 samples, send frame to ESP
+            // 3. When buffer has enough samples, send frame to ESP
             if (sample_index >= samples_per_frame) {
                 SerialLink_SendStreamData(adc_buffer, samples_per_frame, NULL, 0);
                 sample_index = 0;
