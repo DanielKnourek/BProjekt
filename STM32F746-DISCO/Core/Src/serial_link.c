@@ -5,7 +5,7 @@
 #include "flag_tools.h"
 #include <string.h>
 
-#define RX_BUFFER_SIZE 512
+#define RX_BUFFER_SIZE 8192
 static uint8_t rx_buffer[RX_BUFFER_SIZE];
 static uint16_t rx_msg_size = 0;
 
@@ -45,7 +45,8 @@ static void SerialLink_SendPayload(FramePayload *payload) {
     // Ensure previous transmission is complete before writing to tx_buffer!
     while (serial_huart->gState != HAL_UART_STATE_READY) {}
 
-    FrameHeader header = FrameHeader_init_zero;
+    static FrameHeader header;
+    header = (FrameHeader)FrameHeader_init_default;
     
     // Calculate the size of the encoded payload
     size_t payload_length = 0;
@@ -66,14 +67,16 @@ static void SerialLink_SendPayload(FramePayload *payload) {
 }
 
 void SerialLink_SendTestIntData(int32_t value) {
-    FramePayload payload = FramePayload_init_zero;
+    static FramePayload payload;
+    payload = (FramePayload)FramePayload_init_default;
     payload.which_payload = FramePayload_test_int_data_tag;
     payload.payload.test_int_data.value = value;
     SerialLink_SendPayload(&payload);
 }
 
 void SerialLink_SendTestBandwidthData(uint8_t *data, size_t size) {
-    FramePayload payload = FramePayload_init_zero;
+    static FramePayload payload;
+    payload = (FramePayload)FramePayload_init_default;
     payload.which_payload = FramePayload_test_bandwidth_data_tag;
     
     if (size > sizeof(payload.payload.test_bandwidth_data.dummy_data.bytes)) {
@@ -87,7 +90,8 @@ void SerialLink_SendTestBandwidthData(uint8_t *data, size_t size) {
 }
 
 void SerialLink_SendStreamData(int32_t *adc_values, size_t adc_count, int32_t *dac_values, size_t dac_count) {
-    FramePayload payload = FramePayload_init_zero;
+    static FramePayload payload;
+    payload = (FramePayload)FramePayload_init_default;
     payload.which_payload = FramePayload_stream_data_tag;
     
     // limit choosen by protocol
@@ -147,7 +151,10 @@ void SerialLink_Process(void) {
             if (parse_index + 10 + header.next_message_size <= process_len) {
                 // We have a full payload, decode it
                 pb_istream_t payload_stream = pb_istream_from_buffer(&process_buffer[parse_index + 10], header.next_message_size);
-                FramePayload payload = FramePayload_init_zero;
+                
+                static FramePayload payload;
+                payload = (FramePayload)FramePayload_init_default;
+                
                 status = pb_decode(&payload_stream, FramePayload_fields, &payload);
 
                 if (status) {
@@ -156,6 +163,9 @@ void SerialLink_Process(void) {
                     } 
                     else if (payload.which_payload == FramePayload_test_bandwidth_config_tag) {
                         ProgramMgr_SetTestBandwidthConfig(&payload.payload.test_bandwidth_config);
+                    }
+                    else if (payload.which_payload == FramePayload_test_bandwidth_data_tag) {
+                        ProgramMgr_HandleTestBandwidthData(&payload.payload.test_bandwidth_data);
                     }
                     else if (payload.which_payload == FramePayload_stream_config_tag) {
                         ProgramMgr_SetStreamConfig(&payload.payload.stream_config);

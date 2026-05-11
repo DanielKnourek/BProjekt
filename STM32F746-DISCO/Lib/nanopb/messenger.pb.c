@@ -18,7 +18,7 @@ PB_BIND(TestIntData, TestIntData, AUTO)
 PB_BIND(TestBandwidthConfig, TestBandwidthConfig, AUTO)
 
 
-PB_BIND(TestBandwidthData, TestBandwidthData, 2)
+PB_BIND(TestBandwidthData, TestBandwidthData, 4)
 
 
 PB_BIND(StreamConfig, StreamConfig, AUTO)

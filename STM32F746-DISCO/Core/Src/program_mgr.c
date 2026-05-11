@@ -51,6 +51,11 @@ void ProgramMgr_SetStreamConfig(StreamConfig *config) {
         stream_config.enable ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
 
+void ProgramMgr_HandleTestBandwidthData(TestBandwidthData *data) {
+    // Echo back the received data
+    SerialLink_SendTestBandwidthData(data->dummy_data.bytes, data->dummy_data.size);
+}
+
 void ProgramMgr_Process(void) {
     uint32_t tick = HAL_GetTick();
 
@@ -62,6 +67,7 @@ void ProgramMgr_Process(void) {
     }
 
     // 2. Process Test Bandwidth
+    /* Periodic generation disabled - STM now acts as a transparent echo for Program 2
     if (test_bandwidth_config.enable && (tick - last_bandwidth_tick >= 10)) {
         last_bandwidth_tick = tick;
         
@@ -74,6 +80,7 @@ void ProgramMgr_Process(void) {
         
         SerialLink_SendTestBandwidthData(dummy, size);
     }
+    */
 
     // 3. Process Stream
     

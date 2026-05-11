@@ -29,7 +29,7 @@ typedef struct _TestBandwidthConfig {
     uint32_t payload_size;
 } TestBandwidthConfig;
 
-typedef PB_BYTES_ARRAY_T(1024) TestBandwidthData_dummy_data_t;
+typedef PB_BYTES_ARRAY_T(4096) TestBandwidthData_dummy_data_t;
 typedef struct _TestBandwidthData {
     TestBandwidthData_dummy_data_t dummy_data;
 } TestBandwidthData;
@@ -187,7 +187,7 @@ extern const pb_msgdesc_t FramePayload_msg;
 #define StreamConfig_size                        14
 #define StreamData_size                          22000
 #define TestBandwidthConfig_size                 8
-#define TestBandwidthData_size                   1027
+#define TestBandwidthData_size                   4099
 #define TestIntConfig_size                       2
 #define TestIntData_size                         11
 
