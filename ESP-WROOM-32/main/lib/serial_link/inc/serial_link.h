@@ -16,3 +16,12 @@ void send_stream_config(bool enable, uint32_t sample_rate_hz, uint32_t samples_p
 // Callback for stream data
 typedef void (*stream_adc_cb_t)(const int32_t *adc_values, size_t n_adc_values);
 void serial_link_set_stream_adc_cb(stream_adc_cb_t cb);
+
+// Bandwidth test stats
+typedef struct {
+    uint32_t sent;
+    uint32_t received;
+} bandwidth_stats_t;
+
+void serial_link_get_bandwidth_stats(bandwidth_stats_t *stats);
+void serial_link_reset_bandwidth_stats(void);

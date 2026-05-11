@@ -12,6 +12,9 @@
 
 static stream_adc_cb_t g_stream_adc_cb = NULL;
 
+static bandwidth_stats_t g_bw_stats = {0};
+static bool g_bw_running = false;
+
 void serial_link_set_stream_adc_cb(stream_adc_cb_t cb) {
     g_stream_adc_cb = cb;
 }
@@ -120,10 +123,11 @@ static void send_frame(FramePayload* payload) {
 
     int txBytes = uart_write_bytes(UART_NUM_1, total_buf, header_size + payload_size);
 
-
-    ESP_LOGI(TAG, "Sent frame: header_size=%zu, payload_size=%zu, crc=0x%08" PRIx32,
+    if(payload->payload_case != FRAME_PAYLOAD__PAYLOAD_TEST_BANDWIDTH_DATA) {
+        ESP_LOGI(TAG, "Sent frame: header_size=%zu, payload_size=%zu, crc=0x%08" PRIx32,
              header_size, payload_size, header.crc);
-    ESP_LOGI(TAG, "Bytes sent: %d", txBytes);
+             ESP_LOGI(TAG, "Bytes sent: %d", txBytes);
+    }
 
     free(payload_buf);
     free(total_buf);
@@ -139,16 +143,44 @@ void send_test_int_config(bool enable) {
 }
 
 void send_test_bandwidth_config(bool enable, uint32_t payload_size) {
-    FramePayload payload = FRAME_PAYLOAD__INIT;
+    // 1. Send the config to STM32
+    FramePayload config_payload = FRAME_PAYLOAD__INIT;
     TestBandwidthConfig config = TEST_BANDWIDTH_CONFIG__INIT;
     config.enable = enable;
     if (payload_size > 0) {
         config.has_payload_size = 1;
         config.payload_size = payload_size;
     }
-    payload.payload_case = FRAME_PAYLOAD__PAYLOAD_TEST_BANDWIDTH_CONFIG;
-    payload.test_bandwidth_config = &config;
-    send_frame(&payload);
+    config_payload.payload_case = FRAME_PAYLOAD__PAYLOAD_TEST_BANDWIDTH_CONFIG;
+    config_payload.test_bandwidth_config = &config;
+    send_frame(&config_payload);
+
+    // 2. initial bandwith test state
+    if (enable) {
+        g_bw_running = true;
+        serial_link_reset_bandwidth_stats();
+        
+        // Send the initial trigger frame
+        uint32_t size = payload_size > 0 ? payload_size : 1024;
+        uint8_t* dummy = malloc(size);
+        if (dummy) {
+            memset(dummy, 0xAA, size);
+            FramePayload data_payload = FRAME_PAYLOAD__INIT;
+            TestBandwidthData data = TEST_BANDWIDTH_DATA__INIT;
+            data.dummy_data.data = dummy;
+            data.dummy_data.len = size;
+            data_payload.payload_case = FRAME_PAYLOAD__PAYLOAD_TEST_BANDWIDTH_DATA;
+            data_payload.test_bandwidth_data = &data;
+            
+            ESP_LOGI(TAG, "Starting bandwith test with initial %" PRIu32 " byte frame", size);
+            send_frame(&data_payload);
+            g_bw_stats.sent++;
+            free(dummy);
+        }
+    } else {
+        g_bw_running = false;
+        ESP_LOGI(TAG, "Bandwidth bandwith test stopped");
+    }
 }
 
 void send_stream_config(bool enable, uint32_t sample_rate_hz, uint32_t samples_per_frame) {
@@ -229,8 +261,14 @@ FramePayload* create_frame_payload(uint8_t* data, size_t rxBytes) {
                      msg_payload->test_int_config->enable ? "true" : "false");
             break;
         case FRAME_PAYLOAD__PAYLOAD_TEST_BANDWIDTH_DATA:
-            ESP_LOGI(TAG, "Payload: TestBandwidthData dummy bytes = %zu",
-                     msg_payload->test_bandwidth_data->dummy_data.len);
+            g_bw_stats.received++;
+            if (g_bw_running) {
+                // bandwith test: Echo the frame back immediately
+                send_frame(msg_payload);
+                g_bw_stats.sent++;
+            }
+            ESP_LOGD(TAG, "Payload: TestBandwidthData dummy bytes = %zu (total rec:%" PRIu32 ")",
+                     msg_payload->test_bandwidth_data->dummy_data.len, g_bw_stats.received);
             break;
         case FRAME_PAYLOAD__PAYLOAD_TEST_BANDWIDTH_CONFIG:
             ESP_LOGI(TAG, "Payload: TestBandwidthConfig = %s",
@@ -371,3 +409,13 @@ void uart_init(void) {
 }
 
 void start_uart_link(void) { uart_init(); }
+
+void serial_link_get_bandwidth_stats(bandwidth_stats_t *stats) {
+    if (stats) {
+        *stats = g_bw_stats;
+    }
+}
+
+void serial_link_reset_bandwidth_stats(void) {
+    memset(&g_bw_stats, 0, sizeof(g_bw_stats));
+}

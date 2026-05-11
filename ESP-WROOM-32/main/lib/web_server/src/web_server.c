@@ -107,7 +107,11 @@ static esp_err_t handler_get_api_program2(httpd_req_t* req) {
     char param[32];
     if (httpd_query_key_value(buf, "en", param, sizeof(param)) == ESP_OK) {
         uint8_t req_val = atoi(param);
-        send_test_bandwidth_config(req_val > 0, 1024);
+        uint32_t payload_size = 1024;
+        if (httpd_query_key_value(buf, "payload_size", param, sizeof(param)) == ESP_OK) {
+            payload_size = strtoul(param, NULL, 10);
+        }
+        send_test_bandwidth_config(req_val > 0, payload_size);
     }
     
     const char* resp = "Program 2 status";
@@ -306,6 +310,21 @@ static esp_err_t handler_get_api_program3stream(httpd_req_t* req) {
     return ESP_OK;
 }
 
+static esp_err_t handler_get_api_program2stats(httpd_req_t* req) {
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+    
+    bandwidth_stats_t stats;
+    serial_link_get_bandwidth_stats(&stats);
+    
+    char resp[128];
+    snprintf(resp, sizeof(resp), "{\"sent\": %" PRIu32 ", \"received\": %" PRIu32 "}", 
+             stats.sent, stats.received);
+    
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_send(req, resp, strlen(resp));
+    return ESP_OK;
+}
+
 static esp_err_t app_frontend_handler(httpd_req_t* req) {
     extern const unsigned char upload_script_start[] asm("_binary_index_html_start");
     extern const unsigned char upload_script_end[]   asm("_binary_index_html_end");
@@ -349,6 +368,12 @@ static const httpd_uri_t default_paths[] = {
         .uri = "/api/program3",
         .method = HTTP_GET,
         .handler = handler_get_api_program3,
+        .user_ctx = NULL,
+    },
+    {
+        .uri = "/api/program2stats",
+        .method = HTTP_GET,
+        .handler = handler_get_api_program2stats,
         .user_ctx = NULL,
     },
     { // TODO: scheduled for removal (demo endpoint)
