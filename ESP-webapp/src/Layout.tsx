@@ -1,5 +1,4 @@
 import React, { ReactNode } from "react";
-import Sidebar from "@components/Sidebar";
 
 type LayoutProps = {
   children?: ReactNode;
@@ -7,15 +6,11 @@ type LayoutProps = {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <>
-      <Sidebar />
-
-      <div className="p-4 sm:ml-64">
-        <div className="rounded-lg border-2 border-dashed border-gray-200 p-4 dark:border-gray-700">
-          {children}
-        </div>
+    <div className="min-h-screen bg-sky-100 p-4 md:p-8 transition-colors duration-300">
+      <div className="max-w-7xl mx-auto">
+        {children}
       </div>
-    </>
+    </div>
   );
 };
 
