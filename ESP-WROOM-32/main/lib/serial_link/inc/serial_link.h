@@ -12,6 +12,8 @@ void start_uart_link(void);
 void send_test_int_config(bool enable);
 void send_test_bandwidth_config(bool enable, uint32_t payload_size);
 void send_stream_config(bool enable, uint32_t sample_rate_hz, uint32_t samples_per_frame);
+void send_stream_data(const int32_t *dac_values, size_t n_dac_values);
+uint32_t serial_link_get_samples_per_frame(void);
 
 // Callback for stream data
 typedef void (*stream_adc_cb_t)(const int32_t *adc_values, size_t n_adc_values);

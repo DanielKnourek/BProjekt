@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from "react";
 import { LogContext, addLog } from "@lib/Logger";
 import { ENV, getAPIuri } from "@lib/env";
+import DacStreamer from "./DacStreamer";
 const STATS_POLLING_MS = 1000;
 
 export interface ProgramControlsProps {
@@ -249,6 +250,11 @@ const ProgramControls: React.FC<ProgramControlsProps> = ({
               />
             </div>
           </div>
+          
+          <DacStreamer 
+            sampleRate={streamSampleRate} 
+            samplesPerFrame={streamSamplesPerFrame} 
+          />
         </div>
       </div>
     </div>

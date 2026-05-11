@@ -17,6 +17,10 @@ static const char* TAG = "http_server.c";
 
 #define HTTP_SERVER_PORT CONFIG_HTTP_SERVER_PORT
 
+typedef struct {
+    httpd_req_t *req;
+} sse_task_ctx_t;
+
 static esp_err_t handler_api_error(httpd_req_t* req) {
 #define STR "Invalid request"
     httpd_resp_send(req, STR, strlen(STR));
@@ -149,9 +153,79 @@ static esp_err_t handler_get_api_program3(httpd_req_t* req) {
     return ESP_OK;
 }
 
-typedef struct {
-    httpd_req_t *req;
-} sse_task_ctx_t;
+static esp_err_t handler_options_api(httpd_req_t *req) {
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Headers", "Content-Type");
+    httpd_resp_send(req, NULL, 0);
+    return ESP_OK;
+}
+
+static TaskHandle_t g_prog3_rx_task_handle = NULL;
+
+static void program3data_rx_task(void *arg) {
+    sse_task_ctx_t *ctx = (sse_task_ctx_t *)arg;
+    httpd_req_t *req = ctx->req;
+    
+    uint32_t samples_per_frame = serial_link_get_samples_per_frame();
+    if (samples_per_frame == 0) samples_per_frame = 100;
+    size_t chunk_size_bytes = samples_per_frame * sizeof(int32_t);
+    int32_t *samples = malloc(chunk_size_bytes);
+    
+    if (samples) {
+        ESP_LOGI("WEB", "Starting async DAC stream (samples_per_frame: %" PRIu32 ")", samples_per_frame);
+        int idle_seconds = 0;
+        
+        while (idle_seconds < 5) {
+            int received = httpd_req_recv(req, (char*)samples, chunk_size_bytes);
+            if (received <= 0) {
+                if (received == HTTPD_SOCK_ERR_TIMEOUT) {
+                    idle_seconds++;
+                    continue;
+                }
+                ESP_LOGI("WEB", "DAC stream connection closed by client");
+                break;
+            }
+            idle_seconds = 0;
+            send_stream_data(samples, received / sizeof(int32_t));
+        }
+        free(samples);
+    }
+
+    ESP_LOGI("WEB", "DAC stream task exiting");
+    g_prog3_rx_task_handle = NULL;
+    httpd_req_async_handler_complete(req);
+    free(ctx);
+    vTaskDelete(NULL);
+}
+
+static esp_err_t handler_post_api_program3data(httpd_req_t *req) {
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+    
+    if (g_prog3_rx_task_handle != NULL) {
+        ESP_LOGW("WEB", "DAC stream already running. Rejecting new request.");
+        return httpd_resp_send_err(req, HTTPD_403_FORBIDDEN, "Stream already active");
+    }
+
+    httpd_req_t *req_copy = NULL;
+    esp_err_t err = httpd_req_async_handler_begin(req, &req_copy);
+    if (err != ESP_OK) {
+        return err;
+    }
+
+    sse_task_ctx_t *ctx = malloc(sizeof(sse_task_ctx_t));
+    if (!ctx) return ESP_FAIL;
+    ctx->req = req_copy;
+    
+    if (xTaskCreate(program3data_rx_task, "prog3data_rx", 4096, ctx, 5, &g_prog3_rx_task_handle) != pdPASS) {
+        free(ctx);
+        g_prog3_rx_task_handle = NULL;
+        return ESP_FAIL;
+    }
+    
+    return ESP_OK;
+}
+
 
 static void random_sse_task(void *arg) {
     sse_task_ctx_t *ctx = (sse_task_ctx_t *)arg;
@@ -386,6 +460,18 @@ static const httpd_uri_t default_paths[] = {
         .uri = "/api/program3stream",
         .method = HTTP_GET,
         .handler = handler_get_api_program3stream,
+        .user_ctx = NULL,
+    },
+    {
+        .uri = "/api/program3data",
+        .method = HTTP_POST,
+        .handler = handler_post_api_program3data,
+        .user_ctx = NULL,
+    },
+    {
+        .uri = "/api/program3data",
+        .method = HTTP_OPTIONS,
+        .handler = handler_options_api,
         .user_ctx = NULL,
     },
     {

@@ -14,6 +14,7 @@ static stream_adc_cb_t g_stream_adc_cb = NULL;
 
 static bandwidth_stats_t g_bw_stats = {0};
 static bool g_bw_running = false;
+static uint32_t g_samples_per_frame = 100;
 
 void serial_link_set_stream_adc_cb(stream_adc_cb_t cb) {
     g_stream_adc_cb = cb;
@@ -194,10 +195,30 @@ void send_stream_config(bool enable, uint32_t sample_rate_hz, uint32_t samples_p
     if (samples_per_frame > 0) {
         config.has_samples_per_frame = 1;
         config.samples_per_frame = samples_per_frame;
+        g_samples_per_frame = samples_per_frame;
     }
     payload.payload_case = FRAME_PAYLOAD__PAYLOAD_STREAM_CONFIG;
     payload.stream_config = &config;
     send_frame(&payload);
+}
+
+void send_stream_data(const int32_t *dac_values, size_t n_dac_values) {
+    if (n_dac_values == 0 || dac_values == NULL) return;
+    
+    FramePayload payload = FRAME_PAYLOAD__INIT;
+    StreamData data = STREAM_DATA__INIT;
+    
+    data.n_dac_values = n_dac_values;
+    data.dac_values = (int32_t*)dac_values;
+    
+    payload.payload_case = FRAME_PAYLOAD__PAYLOAD_STREAM_DATA;
+    payload.stream_data = &data;
+    
+    send_frame(&payload);
+}
+
+uint32_t serial_link_get_samples_per_frame(void) {
+    return g_samples_per_frame;
 }
 
 /* @note Caller is responsible for calling frame_payload__free_unpacked() on the
