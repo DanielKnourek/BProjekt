@@ -4,12 +4,14 @@ interface CanvasGraphProps {
   data: number[];
   lineColor?: string;
   backgroundColor?: string;
+  fixedRange?: [number, number];
 }
 
 const CanvasGraph: React.FC<CanvasGraphProps> = ({
   data,
   lineColor = "#10b981", // Emerald 500
   backgroundColor = "transparent",
+  fixedRange,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -66,9 +68,9 @@ const CanvasGraph: React.FC<CanvasGraphProps> = ({
     if (currentMin < minRef.current) minRef.current = currentMin;
     if (currentMax > maxRef.current) maxRef.current = currentMax;
 
-    // Use historical extremes, unless they are Infinity (which means data is empty or just reset)
-    const min = minRef.current === Infinity ? 0 : minRef.current;
-    const max = maxRef.current === -Infinity ? 1 : maxRef.current;
+    // Use fixed range if provided, otherwise use historical extremes
+    const min = fixedRange ? fixedRange[0] : (minRef.current === Infinity ? 0 : minRef.current);
+    const max = fixedRange ? fixedRange[1] : (maxRef.current === -Infinity ? 1 : maxRef.current);
     const range = max - min || 1; // Prevent divide by zero
 
     data.forEach((val, i) => {

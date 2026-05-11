@@ -23,19 +23,25 @@ const DacStreamer = forwardRef<DacStreamerHandle, DacStreamerProps>(({ sampleRat
   const [constantValue, setConstantValue] = useState(2048);
   const [sineFreq, setSineFreq] = useState(440);
   const [sineAmp, setSineAmp] = useState(1000);
+  const [offset, setOffset] = useState(2048);
 
   // Audio state
   const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
 
   const streamingRef = useRef(false);
-  const abortControllerRef = useRef<AbortController | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Keep track of phase for sine wave to ensure continuity between chunks
   const phaseRef = useRef(0);
-  // Keep track of audio offset
   const audioOffsetRef = useRef(0);
+  const wsRef = useRef<WebSocket | null>(null);
+
+  const getWsUri = (env: any) => {
+    const base = getAPIuri(env);
+    // Replace http with ws, handles https -> wss as well
+    return base.replace(/^http/, "ws") + "program3data";
+  };
 
   const startStreaming = async () => {
     if (isStreaming) return;
@@ -45,47 +51,72 @@ const DacStreamer = forwardRef<DacStreamerHandle, DacStreamerProps>(({ sampleRat
     setError(null);
     phaseRef.current = 0;
     audioOffsetRef.current = 0;
-    abortControllerRef.current = new AbortController();
-    const signal = abortControllerRef.current.signal;
 
-    if (Logger) addLog(Logger, `Starting DAC Upstream (${signalType})...`);
+    const wsUrl = getWsUri(ENV);
+    if (Logger) addLog(Logger, `Connecting WebSocket to ${wsUrl}...`);
 
     try {
-      while (streamingRef.current) {
-        const samples = generateSamples(samplesPerFrame);
-        const binaryBuffer = new Int32Array(samples).buffer;
+      const socket = new WebSocket(wsUrl);
+      socket.binaryType = 'arraybuffer';
+      wsRef.current = socket;
 
-        const response = await fetch(`${getAPIuri(ENV)}program3data`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/octet-stream",
-          },
-          body: binaryBuffer,
-          signal,
-        });
+      socket.onopen = () => {
+        if (Logger) addLog(Logger, "DAC Stream Connected (WebSocket)");
+        startDataLoop();
+      };
 
-        if (response.status === 403) {
-          setError("Stream Busy: Another client is already streaming.");
+      socket.onclose = () => {
+        if (streamingRef.current) {
+          if (Logger) addLog(Logger, "WebSocket connection closed.");
           stopStreaming();
-          break;
         }
+      };
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+      socket.onerror = (ev) => {
+        console.error("WebSocket Error:", ev);
+        setError("WebSocket connection failed.");
+        stopStreaming();
+      };
+
+    } catch (err: any) {
+      setError(`WS Setup error: ${err.message}`);
+      stopStreaming();
+    }
+  };
+
+  const startDataLoop = async () => {
+    const frameDurationMs = (samplesPerFrame / sampleRate) * 1000;
+    
+    try {
+      while (streamingRef.current && wsRef.current?.readyState === WebSocket.OPEN) {
+        const startTime = Date.now();
+        
+        const samples = generateSamples(samplesPerFrame);
+        const buffer = new Int32Array(samples).buffer;
+        
+        wsRef.current.send(buffer);
+
+        const elapsedTime = Date.now() - startTime;
+        const sleepTime = Math.max(0, frameDurationMs - elapsedTime);
+        
+        if (sleepTime > 0) {
+          await new Promise((r) => setTimeout(r, sleepTime));
         }
       }
-    } catch (err: any) {
-      if (streamingRef.current) {
-        setError(`Streaming error: ${err.message}`);
-        stopStreaming();
-      }
+    } catch (err) {
+      console.error("Data loop error:", err);
     }
   };
 
   const stopStreaming = () => {
     setIsStreaming(false);
     streamingRef.current = false;
-    abortControllerRef.current?.abort();
+    
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+    
     if (Logger) addLog(Logger, "DAC Upstream stopped.");
   };
 
@@ -104,7 +135,7 @@ const DacStreamer = forwardRef<DacStreamerHandle, DacStreamerProps>(({ sampleRat
       if (signalType === "constant") {
         val = constantValue;
       } else if (signalType === "sine") {
-        val = 2048 + Math.sin(phaseRef.current) * sineAmp;
+        val = offset + Math.sin(phaseRef.current) * sineAmp;
         phaseRef.current += 2 * Math.PI * sineFreq * dt;
         if (phaseRef.current > 2 * Math.PI) phaseRef.current -= 2 * Math.PI;
       } else if (signalType === "audio" && audioBuffer) {
@@ -236,6 +267,25 @@ const DacStreamer = forwardRef<DacStreamerHandle, DacStreamerProps>(({ sampleRat
                   type="number" min="0" max="2047"
                   value={sineAmp}
                   onChange={(e) => setSineAmp(Number(e.target.value))}
+                  className="w-20 rounded border border-gray-300 p-1 text-sm dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                  disabled={isStreaming}
+                />
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-gray-500 font-medium">Offset (Center)</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range" min="0" max="4095"
+                  value={offset}
+                  onChange={(e) => setOffset(Number(e.target.value))}
+                  className="flex-1 accent-blue-600"
+                  disabled={isStreaming}
+                />
+                <input
+                  type="number" min="0" max="4095"
+                  value={offset}
+                  onChange={(e) => setOffset(Number(e.target.value))}
                   className="w-20 rounded border border-gray-300 p-1 text-sm dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
                   disabled={isStreaming}
                 />

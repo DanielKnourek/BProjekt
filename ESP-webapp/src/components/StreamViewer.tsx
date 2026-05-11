@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext, useEffect, forwardRef, useImperativeHandle } from "react";
+import { useState, useRef, useContext, useEffect, forwardRef, useImperativeHandle } from "react";
 import CanvasGraph from "./CanvasGraph";
 import { ENV, getAPIuri } from "@lib/env";
 import { LogContext, addLog } from "@lib/Logger";
@@ -14,7 +14,8 @@ export interface StreamViewerHandle {
 const StreamViewer = forwardRef<StreamViewerHandle, StreamViewerProps>(({ sampleRate = 1000 }, ref) => {
   const Logger = useContext(LogContext);
   const [streamData, setStreamData] = useState<number[]>([]);
-  const [isStreaming, setIsStreaming] = useState(false);
+   const [isStreaming, setIsStreaming] = useState(false);
+  const [useFixedScale, setUseFixedScale] = useState(false);
   const [maxPoints, setMaxPoints] = useState<number>(200);
   const [bufferSeconds, setBufferSeconds] = useState<number>(1);
 
@@ -213,6 +214,19 @@ const StreamViewer = forwardRef<StreamViewerHandle, StreamViewerProps>(({ sample
                 disabled={isStreaming}
               />
             </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">Scale:</label>
+              <button
+                onClick={() => setUseFixedScale(!useFixedScale)}
+                className={`text-[10px] font-bold px-2 py-1 rounded border transition-colors ${
+                  useFixedScale 
+                    ? "bg-blue-600 text-white border-blue-700" 
+                    : "bg-gray-100 text-gray-600 border-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+                }`}
+              >
+                {useFixedScale ? "FIXED 0-4095" : "AUTO-SCALE"}
+              </button>
+            </div>
           </div>
           <button
             onClick={isStreaming ? stopStream : startStream}
@@ -228,7 +242,10 @@ const StreamViewer = forwardRef<StreamViewerHandle, StreamViewerProps>(({ sample
       </div>
 
       <div className="h-64 w-full">
-        <CanvasGraph data={streamData} />
+        <CanvasGraph 
+          data={streamData} 
+          fixedRange={useFixedScale ? [0, 4095] : undefined}
+        />
       </div>
     </div>
   );
