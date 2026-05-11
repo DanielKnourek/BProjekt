@@ -2,7 +2,8 @@
 ADC3.Channel-0\#ChannelRegularConversion=ADC_CHANNEL_0
 ADC3.Channel-IN0=ADC_CHANNEL_0
 ADC3.ContinuousConvMode=ENABLE
-ADC3.IPParameters=Channel-IN0,Channel-0\#ChannelRegularConversion,ContinuousConvMode
+ADC3.IPParameters=Channel-IN0,Channel-0\#ChannelRegularConversion,ContinuousConvMode,SamplingTime-0\#ChannelRegularConversion
+ADC3.SamplingTime-0\#ChannelRegularConversion=ADC_SAMPLETIME_480CYCLES
 CAD.formats=
 CAD.pinconfig=
 CAD.provider=

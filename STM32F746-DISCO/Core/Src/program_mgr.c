@@ -53,6 +53,17 @@ void ProgramMgr_SetTestBandwidthConfig(TestBandwidthConfig *config) {
 void ProgramMgr_SetStreamConfig(StreamConfig *config) {
     stream_config = *config;
 
+    extern TIM_HandleTypeDef htim13;
+    extern ADC_HandleTypeDef hadc3;
+    
+    if (stream_config.enable) {
+        HAL_TIM_PWM_Start(&htim13, TIM_CHANNEL_1);
+        HAL_ADC_Start(&hadc3);
+    } else {
+        HAL_TIM_PWM_Stop(&htim13, TIM_CHANNEL_1);
+        HAL_ADC_Stop(&hadc3);
+    }
+
     HAL_GPIO_WritePin(ARDUINO_PWM_CS_D5_GPIO_Port, ARDUINO_PWM_CS_D5_Pin, 
         stream_config.enable ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
@@ -156,20 +167,21 @@ void ProgramMgr_Process(void) {
             }
 
             extern TIM_HandleTypeDef htim13;
-            // Auto-scale our wave to whatever the timer's ARR period is set to!
             uint32_t current_arr = __HAL_TIM_GET_AUTORELOAD(&htim13);
             uint32_t pwm_val = (dac_val * (current_arr + 1)) / 4096;
+            if (pwm_val > current_arr) pwm_val = current_arr;
             __HAL_TIM_SET_COMPARE(&htim13, TIM_CHANNEL_1, pwm_val);
             
-            // 2. Read ADC on A0 (Channel 0)
+            // 2. Read ADC on A0 (Channel 0) - Robust Single Trigger
             extern ADC_HandleTypeDef hadc3;
-            
+            static uint32_t current_adc_reading = 2048;
             HAL_ADC_Start(&hadc3);
-            if (HAL_ADC_PollForConversion(&hadc3, 1) == HAL_OK) {
-                adc_buffer[sample_index] = HAL_ADC_GetValue(&hadc3);
-            } else {
-                adc_buffer[sample_index] = 0;
+            if (HAL_ADC_PollForConversion(&hadc3, 10) == HAL_OK) {
+                current_adc_reading = HAL_ADC_GetValue(&hadc3);
             }
+            HAL_ADC_Stop(&hadc3);
+            
+            adc_buffer[sample_index] = current_adc_reading;
             
             sample_index++;
             
