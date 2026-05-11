@@ -12,6 +12,12 @@ static uint32_t last_stream_tick = 0;
 
 static int32_t test_int_counter = 0;
 
+// Program 3 DAC FIFO
+#define DAC_FIFO_SIZE 8192
+static int32_t dac_fifo[DAC_FIFO_SIZE];
+static uint16_t dac_fifo_write = 0;
+static uint16_t dac_fifo_read = 0;
+
 void ProgramMgr_Init(void) {
     // configure pins
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -54,6 +60,18 @@ void ProgramMgr_SetStreamConfig(StreamConfig *config) {
 void ProgramMgr_HandleTestBandwidthData(TestBandwidthData *data) {
     // Echo back the received data
     SerialLink_SendTestBandwidthData(data->dummy_data.bytes, data->dummy_data.size);
+}
+
+void ProgramMgr_HandleStreamData(StreamData *data) {
+    for (uint32_t i = 0; i < data->dac_values_count; i++) {
+        dac_fifo[dac_fifo_write] = data->dac_values[i];
+        dac_fifo_write = (dac_fifo_write + 1) % DAC_FIFO_SIZE;
+        
+        // Basic overflow protection: if we catch up to read index, skip oldest sample
+        if (dac_fifo_write == dac_fifo_read) {
+            dac_fifo_read = (dac_fifo_read + 1) % DAC_FIFO_SIZE;
+        }
+    }
 }
 
 void ProgramMgr_Process(void) {
@@ -123,16 +141,6 @@ void ProgramMgr_Process(void) {
         // Initialize tick on first run
         if (last_sample_tick == 0) last_sample_tick = tick;
         
-        // Pre-calculated 1Hz sine wave (100 samples) mapping to 0-4095
-        static const uint16_t sine_wave[100] = {
-            2048, 2176, 2304, 2431, 2557, 2680, 2801, 2919, 3034, 3145, 3251, 3353, 3449, 3540, 3625, 3704, 3776, 3842, 3900, 3951,
-            3995, 4031, 4059, 4079, 4091, 4095, 4091, 4079, 4059, 4031, 3995, 3951, 3900, 3842, 3776, 3704, 3625, 3540, 3449, 3353,
-            3251, 3145, 3034, 2919, 2801, 2680, 2557, 2431, 2304, 2176, 2048, 1919, 1791, 1664, 1538, 1415, 1294, 1176, 1061, 950,
-            844, 742, 646, 555, 470, 391, 319, 253, 195, 144, 100, 64, 36, 16, 4, 0, 4, 16, 36, 64,
-            100, 144, 195, 253, 319, 391, 470, 555, 646, 742, 844, 950, 1061, 1176, 1294, 1415, 1538, 1664, 1791, 1919
-        };
-        static uint32_t sine_index = 0;
-
         if (tick - last_sample_tick >= sample_interval_ms) {
             if (tick - last_sample_tick > sample_interval_ms * 2) {
                 last_sample_tick = tick;
@@ -140,14 +148,18 @@ void ProgramMgr_Process(void) {
                 last_sample_tick += sample_interval_ms;
             }
             
-            // 1. Output next sine wave value to DAC (PWM on A3)
+            // 1. Output next value from FIFO to DAC (PWM on A3)
+            int32_t dac_val = 2048; // Default mid-point if empty
+            if (dac_fifo_read != dac_fifo_write) {
+                dac_val = dac_fifo[dac_fifo_read];
+                dac_fifo_read = (dac_fifo_read + 1) % DAC_FIFO_SIZE;
+            }
+
             extern TIM_HandleTypeDef htim13;
-            // Auto-scale our 0-4095 wave to whatever the timer's ARR period is set to!
+            // Auto-scale our wave to whatever the timer's ARR period is set to!
             uint32_t current_arr = __HAL_TIM_GET_AUTORELOAD(&htim13);
-            uint32_t pwm_val = (sine_wave[sine_index] * (current_arr + 1)) / 4096;
+            uint32_t pwm_val = (dac_val * (current_arr + 1)) / 4096;
             __HAL_TIM_SET_COMPARE(&htim13, TIM_CHANNEL_1, pwm_val);
-            
-            sine_index = (sine_index + 1) % 100;
             
             // 2. Read ADC on A0 (Channel 0)
             extern ADC_HandleTypeDef hadc3;

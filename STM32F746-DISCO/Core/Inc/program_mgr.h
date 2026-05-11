@@ -12,6 +12,6 @@ void ProgramMgr_SetTestIntConfig(TestIntConfig *config);
 void ProgramMgr_SetTestBandwidthConfig(TestBandwidthConfig *config);
 void ProgramMgr_SetStreamConfig(StreamConfig *config);
 void ProgramMgr_HandleTestBandwidthData(TestBandwidthData *data);
-
+void ProgramMgr_HandleStreamData(StreamData *data);
 
 #endif

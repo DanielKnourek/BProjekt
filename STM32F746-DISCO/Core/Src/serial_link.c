@@ -170,6 +170,9 @@ void SerialLink_Process(void) {
                     else if (payload.which_payload == FramePayload_stream_config_tag) {
                         ProgramMgr_SetStreamConfig(&payload.payload.stream_config);
                     }
+                    else if (payload.which_payload == FramePayload_stream_data_tag) {
+                        ProgramMgr_HandleStreamData(&payload.payload.stream_data);
+                    }
                 }
 
                 parse_index += 10 + header.next_message_size;
