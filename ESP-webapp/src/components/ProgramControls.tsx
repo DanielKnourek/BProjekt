@@ -101,12 +101,12 @@ const ProgramControls: React.FC<ProgramControlsProps> = ({
           <div className="flex items-center gap-2">
             <input
               type="range"
-              min="8"
+              min="0"
               max="4096"
-              step="8"
+              step="128"
               className="flex-1"
               value={bwPayloadSize}
-              onChange={(e) => setBwPayloadSize(Number(e.target.value))}
+              onChange={(e) => setBwPayloadSize(Number(e.target.value) < 8 ? 8 : Number(e.target.value))}
             />
             <input
               type="number"
