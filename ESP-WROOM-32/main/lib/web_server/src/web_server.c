@@ -29,12 +29,10 @@ static esp_err_t handler_api_error(httpd_req_t* req) {
 }
 
 static esp_err_t handler_get_api_status(httpd_req_t* req) {
-#define STR "Api for ESP is running. \n"
-    ESP_LOGI(TAG, "Free Stack for server task: '%d'",
-             uxTaskGetStackHighWaterMark(NULL));
-    httpd_resp_send(req, STR, strlen(STR));
-    return ESP_OK;
-#undef STR
+    httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+    httpd_resp_set_type(req, "application/json");
+    const char* resp = "{\"status\":\"ok\"}";
+    return httpd_resp_send(req, resp, strlen(resp));
 }
 
 static esp_err_t get_api_query_buf(httpd_req_t* req, char** query_buf) {

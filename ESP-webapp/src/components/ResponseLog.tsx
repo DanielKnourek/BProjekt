@@ -29,13 +29,13 @@ const ResponseLog: React.FC = () => {
             <div className="w-2.5 h-2.5 rounded-full bg-amber-500/80"></div>
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></div>
           </div>
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-2">System Console</span>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2">System Console</span>
         </div>
-        <span className="text-[10px] text-slate-500">{timeStr}</span>
+        <span className="text-[10px] text-slate-400">{timeStr}</span>
       </div>
 
       {/* Log Content */}
-      <div 
+      <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto p-3 flex flex-col scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent scroll-smooth"
       >

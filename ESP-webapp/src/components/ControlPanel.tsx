@@ -2,7 +2,6 @@ import React from "react";
 import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
-import LedControl from "./LedControl";
 import ResponseLog from "./ResponseLog";
 
 const ControlPanel: React.FC = () => {
@@ -28,7 +27,6 @@ const ControlPanel: React.FC = () => {
         </p>
       </div>
       <p className=" ">Click on the Vite and React logos to learn more</p>
-      <LedControl />
       <ResponseLog />
     </>
   );

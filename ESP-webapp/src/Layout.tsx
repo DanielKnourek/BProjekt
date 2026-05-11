@@ -6,8 +6,8 @@ type LayoutProps = {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-sky-100 p-4 md:p-8 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-sky-100 dark:bg-slate-950 p-4 md:p-8 transition-colors duration-300">
+      <div className="max-w-7xl mx-auto relative">
         {children}
       </div>
     </div>

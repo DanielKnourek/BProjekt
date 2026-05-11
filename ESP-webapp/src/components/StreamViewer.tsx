@@ -181,62 +181,74 @@ const StreamViewer = forwardRef<StreamViewerHandle, StreamViewerProps>(({ sample
   }));
 
   return (
-    <div className="mb-4 rounded bg-gray-50 p-4 dark:bg-gray-800">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
-          Program 3: ADC stream
-        </h3>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-4">
+    <div className="mb-4 rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+          </div>
+          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+            Program 3: ADC stream
+          </h3>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-4 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-100 dark:border-slate-700">
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">Buffer ({bufferSeconds}s):</label>
+              <label className="text-xs font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Buffer ({bufferSeconds}s):</label>
               <input
                 type="range"
                 min="0"
                 max="5"
                 step="1"
-                className="w-16 cursor-pointer accent-blue-600"
+                className="w-20 cursor-pointer accent-indigo-600"
                 value={bufferSeconds}
                 onChange={(e) => setBufferSeconds(Number(e.target.value))}
                 disabled={isStreaming}
               />
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">Max Points:</label>
+              <label className="text-xs font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Points:</label>
               <input
                 type="number"
                 min="10"
                 max="5000"
                 step="10"
-                className="w-20 rounded border border-gray-300 bg-white p-1 text-sm text-gray-900 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                className="w-20 rounded-md border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 p-1.5 text-sm font-semibold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
                 value={maxPoints}
                 onChange={(e) => setMaxPoints(Number(e.target.value))}
                 disabled={isStreaming}
               />
             </div>
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">Scale:</label>
+            <div className="flex items-center gap-2 border-l border-slate-200 dark:border-slate-700 pl-4 ml-2">
+              <label className="text-xs font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Scale:</label>
               <button
                 onClick={() => setUseFixedScale(!useFixedScale)}
-                className={`text-[10px] font-bold px-2 py-1 rounded border transition-colors ${
+                className={`text-[10px] font-bold px-4 py-1.5 rounded-lg border transition-all active:scale-95 shadow-sm uppercase tracking-wider ${
                   useFixedScale 
-                    ? "bg-blue-600 text-white border-blue-700" 
-                    : "bg-gray-100 text-gray-600 border-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+                    ? "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800 ring-4 ring-amber-500/10"
+                    : "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800 ring-4 ring-indigo-500/10"
                 }`}
               >
-                {useFixedScale ? "FIXED 0-4095" : "AUTO-SCALE"}
+                <div className="flex items-center gap-2">
+                  <span className={`w-1.5 h-1.5 rounded-full ${useFixedScale ? 'bg-amber-500 animate-pulse' : 'bg-indigo-500 animate-pulse'}`}></span>
+                  {useFixedScale ? "Fixed Scale" : "Auto Scale"}
+                </div>
               </button>
             </div>
           </div>
+          
           <button
             onClick={isStreaming ? stopStream : startStream}
-            title="Click to manually start/stop incoming stream"
-            className={`rounded py-2 px-6 text-center font-bold text-xs uppercase tracking-widest transition-all border hover:brightness-95 active:scale-95 ${isStreaming
-              ? "bg-green-200 text-green-900 border-green-400"
-              : "bg-gray-100 text-gray-400 border-gray-200"
+            className={`flex-1 md:flex-none md:min-w-[200px] rounded-lg py-2.5 px-6 text-center font-bold text-xs uppercase tracking-widest transition-all border shadow-sm active:scale-95 ${isStreaming
+              ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800 ring-4 ring-indigo-500/10 cursor-default"
+              : "bg-slate-50 dark:bg-slate-700 text-slate-400 dark:text-slate-400 border-slate-200 dark:border-slate-600 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-600"
             }`}
           >
-            {isStreaming ? "● Incoming Active" : "○ Downstream Stopped"}
+            <div className="flex items-center justify-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${isStreaming ? 'bg-indigo-500 animate-pulse' : 'bg-slate-300 dark:bg-slate-600'}`}></span>
+              {isStreaming ? "Incoming Active" : "Stream Stopped"}
+            </div>
           </button>
         </div>
       </div>
