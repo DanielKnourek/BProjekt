@@ -65,9 +65,9 @@ const StreamViewer = forwardRef<StreamViewerHandle, StreamViewerProps>(({ sample
           let drainRate = pps;
           if (targetBufferSize === 0) {
             // If target buffer size is 0, drain instantly
-            drainRate = pps + dataBufferRef.current.length * 60; 
+            drainRate = pps + dataBufferRef.current.length * 60;
           }
-          
+
           fractionalPoints += drainRate * (dt / 1000);
           const pointsToPop = Math.floor(fractionalPoints);
 
@@ -214,28 +214,16 @@ const StreamViewer = forwardRef<StreamViewerHandle, StreamViewerProps>(({ sample
               />
             </div>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={startStream}
-              disabled={isStreaming}
-              className={`rounded px-4 py-2 text-white transition-colors ${isStreaming
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"
-                }`}
-            >
-              Start Stream
-            </button>
-            <button
-              onClick={stopStream}
-              disabled={!isStreaming}
-              className={`rounded px-4 py-2 text-white transition-colors ${!isStreaming
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-red-600 hover:bg-red-700"
-                }`}
-            >
-              Stop Stream
-            </button>
-          </div>
+          <button
+            onClick={isStreaming ? stopStream : startStream}
+            title="Click to manually start/stop incoming stream"
+            className={`rounded py-2 px-6 text-center font-bold text-xs uppercase tracking-widest transition-all border hover:brightness-95 active:scale-95 ${isStreaming
+              ? "bg-green-200 text-green-900 border-green-400"
+              : "bg-gray-100 text-gray-400 border-gray-200"
+            }`}
+          >
+            {isStreaming ? "● Incoming Active" : "○ Downstream Stopped"}
+          </button>
         </div>
       </div>
 

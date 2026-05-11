@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext } from "react";
+import React, { useState, useRef, useContext, forwardRef, useImperativeHandle } from "react";
 import { ENV, getAPIuri } from "@lib/env";
 import { LogContext, addLog } from "@lib/Logger";
 
@@ -9,21 +9,27 @@ interface DacStreamerProps {
   samplesPerFrame: number;
 }
 
-const DacStreamer: React.FC<DacStreamerProps> = ({ sampleRate, samplesPerFrame }) => {
+export interface DacStreamerHandle {
+  startStreaming: () => void;
+  stopStreaming: () => void;
+}
+
+const DacStreamer = forwardRef<DacStreamerHandle, DacStreamerProps>(({ sampleRate, samplesPerFrame }, ref) => {
   const Logger = useContext(LogContext);
   const [isStreaming, setIsStreaming] = useState(false);
   const [signalType, setSignalType] = useState<SignalType>("constant");
-  
+
   // Signal parameters
   const [constantValue, setConstantValue] = useState(2048);
   const [sineFreq, setSineFreq] = useState(440);
   const [sineAmp, setSineAmp] = useState(1000);
-  
+
   // Audio state
   const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
-  
+
   const streamingRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Keep track of phase for sine wave to ensure continuity between chunks
@@ -33,12 +39,14 @@ const DacStreamer: React.FC<DacStreamerProps> = ({ sampleRate, samplesPerFrame }
 
   const startStreaming = async () => {
     if (isStreaming) return;
-    
+
     setIsStreaming(true);
     streamingRef.current = true;
     setError(null);
     phaseRef.current = 0;
     audioOffsetRef.current = 0;
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
 
     if (Logger) addLog(Logger, `Starting DAC Upstream (${signalType})...`);
 
@@ -53,6 +61,7 @@ const DacStreamer: React.FC<DacStreamerProps> = ({ sampleRate, samplesPerFrame }
             "Content-Type": "application/octet-stream",
           },
           body: binaryBuffer,
+          signal,
         });
 
         if (response.status === 403) {
@@ -64,22 +73,26 @@ const DacStreamer: React.FC<DacStreamerProps> = ({ sampleRate, samplesPerFrame }
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-
-        // Flow control: the loop waits for the previous fetch to resolve
-        // If we want to be even safer, we can add a small delay if needed, 
-        // but the network round trip usually provides enough backpressure.
       }
     } catch (err: any) {
-      setError(`Streaming error: ${err.message}`);
-      stopStreaming();
+      if (streamingRef.current) {
+        setError(`Streaming error: ${err.message}`);
+        stopStreaming();
+      }
     }
   };
 
   const stopStreaming = () => {
     setIsStreaming(false);
     streamingRef.current = false;
+    abortControllerRef.current?.abort();
     if (Logger) addLog(Logger, "DAC Upstream stopped.");
   };
+
+  useImperativeHandle(ref, () => ({
+    startStreaming,
+    stopStreaming,
+  }));
 
   const generateSamples = (count: number): number[] => {
     const samples: number[] = [];
@@ -93,22 +106,18 @@ const DacStreamer: React.FC<DacStreamerProps> = ({ sampleRate, samplesPerFrame }
       } else if (signalType === "sine") {
         val = 2048 + Math.sin(phaseRef.current) * sineAmp;
         phaseRef.current += 2 * Math.PI * sineFreq * dt;
-        // Keep phase within 2PI to avoid precision issues over time
         if (phaseRef.current > 2 * Math.PI) phaseRef.current -= 2 * Math.PI;
       } else if (signalType === "audio" && audioBuffer) {
         const data = audioBuffer.getChannelData(0);
         if (audioOffsetRef.current < data.length) {
-          // Map audio (-1 to 1) to DAC (0 to 4095)
           val = 2048 + data[audioOffsetRef.current] * 2047;
           audioOffsetRef.current++;
         } else {
-          // Loop audio
           audioOffsetRef.current = 0;
           val = 2048 + data[audioOffsetRef.current] * 2047;
         }
       }
 
-      // Clamp to 12-bit range
       samples.push(Math.max(0, Math.min(4095, Math.floor(val))));
     }
 
@@ -136,17 +145,17 @@ const DacStreamer: React.FC<DacStreamerProps> = ({ sampleRate, samplesPerFrame }
 
   return (
     <div className="mt-4 border-t border-gray-200 pt-4 dark:border-gray-700">
-      <h4 className="mb-2 text-md font-semibold text-gray-700 dark:text-gray-300">DAC Upstream (POST)</h4>
-      
+      <h4 className="mb-2 text-md font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-tight">DAC Upstream Control</h4>
+
       {error && (
-        <div className="mb-2 rounded bg-red-100 p-2 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-400">
+        <div className="mb-2 rounded bg-red-100 p-2 text-xs text-red-700 dark:bg-red-900/30 dark:text-red-400">
           {error}
         </div>
       )}
 
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-4">
-          <select 
+          <select
             className="rounded border border-gray-300 bg-white p-2 text-sm focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             value={signalType}
             onChange={(e) => setSignalType(e.target.value as SignalType)}
@@ -159,11 +168,14 @@ const DacStreamer: React.FC<DacStreamerProps> = ({ sampleRate, samplesPerFrame }
 
           <button
             onClick={isStreaming ? stopStreaming : startStreaming}
-            className={`flex-1 rounded py-2 text-white transition-colors ${
-              isStreaming ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
+            title="Click to manually start/stop outgoing stream"
+            className={`flex-1 rounded py-2 px-4 text-center font-bold text-xs uppercase tracking-widest transition-all border hover:brightness-95 active:scale-95 ${isStreaming
+              ? "bg-green-200 text-green-900 border-green-400 cursor-not-allowed"
+              : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
             }`}
+            disabled={isStreaming}
           >
-            {isStreaming ? "Stop Stream" : "Start Stream"}
+            {isStreaming ? "● Outgoing Active" : "○ Upstream Stopped"}
           </button>
         </div>
 
@@ -171,17 +183,19 @@ const DacStreamer: React.FC<DacStreamerProps> = ({ sampleRate, samplesPerFrame }
           <div className="flex flex-col gap-1">
             <label className="text-xs text-gray-500 font-medium">Constant Value (0-4095)</label>
             <div className="flex items-center gap-2">
-              <input 
-                type="range" min="0" max="4095" 
-                value={constantValue} 
+              <input
+                type="range" min="0" max="4095"
+                value={constantValue}
                 onChange={(e) => setConstantValue(Number(e.target.value))}
                 className="flex-1 accent-blue-600"
+                disabled={isStreaming}
               />
-              <input 
-                type="number" min="0" max="4095" 
-                value={constantValue} 
+              <input
+                type="number" min="0" max="4095"
+                value={constantValue}
                 onChange={(e) => setConstantValue(Number(e.target.value))}
-                className="w-20 rounded border border-gray-300 p-1 text-sm dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-20 rounded border border-gray-300 p-1 text-sm dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                disabled={isStreaming}
               />
             </div>
           </div>
@@ -192,34 +206,38 @@ const DacStreamer: React.FC<DacStreamerProps> = ({ sampleRate, samplesPerFrame }
             <div className="flex flex-col gap-1">
               <label className="text-xs text-gray-500 font-medium">Frequency (Hz)</label>
               <div className="flex items-center gap-2">
-                <input 
-                  type="range" min="1" max="5000" 
-                  value={sineFreq} 
-                  onChange={(e) => setSineFreq(Number(e.target.value))}
+                <input
+                  type="range" min="0" max="5000" step={100}
+                  value={sineFreq}
+                  onChange={(e) => setSineFreq(Number(e.target.value) <= 0 ? 1 : Number(e.target.value))}
                   className="flex-1 accent-blue-600"
+                  disabled={isStreaming}
                 />
-                <input 
-                  type="number" min="1" max="5000" 
-                  value={sineFreq} 
+                <input
+                  type="number" min="1" max="5000"
+                  value={sineFreq}
                   onChange={(e) => setSineFreq(Number(e.target.value))}
-                  className="w-20 rounded border border-gray-300 p-1 text-sm dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-20 rounded border border-gray-300 p-1 text-sm dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                  disabled={isStreaming}
                 />
               </div>
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-xs text-gray-500 font-medium">Amplitude</label>
               <div className="flex items-center gap-2">
-                <input 
-                  type="range" min="0" max="2047" 
-                  value={sineAmp} 
+                <input
+                  type="range" min="0" max="2047" step={64}
+                  value={sineAmp}
                   onChange={(e) => setSineAmp(Number(e.target.value))}
                   className="flex-1 accent-blue-600"
+                  disabled={isStreaming}
                 />
-                <input 
-                  type="number" min="0" max="2047" 
-                  value={sineAmp} 
+                <input
+                  type="number" min="0" max="2047"
+                  value={sineAmp}
                   onChange={(e) => setSineAmp(Number(e.target.value))}
-                  className="w-20 rounded border border-gray-300 p-1 text-sm dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-20 rounded border border-gray-300 p-1 text-sm dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                  disabled={isStreaming}
                 />
               </div>
             </div>
@@ -228,8 +246,8 @@ const DacStreamer: React.FC<DacStreamerProps> = ({ sampleRate, samplesPerFrame }
 
         {signalType === "audio" && (
           <div className="flex flex-col gap-2">
-            <input 
-              type="file" accept=".wav" 
+            <input
+              type="file" accept=".wav"
               onChange={handleFileChange}
               className="text-xs text-gray-500"
               disabled={isStreaming}
@@ -242,6 +260,6 @@ const DacStreamer: React.FC<DacStreamerProps> = ({ sampleRate, samplesPerFrame }
       </div>
     </div>
   );
-};
+});
 
 export default DacStreamer;

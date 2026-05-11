@@ -217,7 +217,7 @@ static esp_err_t handler_post_api_program3data(httpd_req_t *req) {
     if (!ctx) return ESP_FAIL;
     ctx->req = req_copy;
     
-    if (xTaskCreate(program3data_rx_task, "prog3data_rx", 4096, ctx, 5, &g_prog3_rx_task_handle) != pdPASS) {
+    if (xTaskCreate(program3data_rx_task, "prog3data_rx", 4096, ctx, 4, &g_prog3_rx_task_handle) != pdPASS) {
         free(ctx);
         g_prog3_rx_task_handle = NULL;
         return ESP_FAIL;
@@ -264,7 +264,7 @@ static esp_err_t handler_get_api_random(httpd_req_t* req) {
     sse_task_ctx_t *ctx = malloc(sizeof(sse_task_ctx_t));
     ctx->req = req_copy;
     
-    xTaskCreate(random_sse_task, "random_sse", 4096, ctx, 5, NULL);
+    xTaskCreate(random_sse_task, "random_sse", 4096, ctx, 4, NULL);
 
     return ESP_OK;
 }
@@ -379,7 +379,7 @@ static esp_err_t handler_get_api_program3stream(httpd_req_t* req) {
     }
     ctx->req = req_copy;
     
-    xTaskCreate(program3stream_sse_task, "prog3str_sse", 4096, ctx, 5, NULL);
+    xTaskCreate(program3stream_sse_task, "prog3str_sse", 4096, ctx, 4, NULL);
 
     return ESP_OK;
 }
@@ -504,6 +504,7 @@ httpd_handle_t start_webserver(void) {
 
     /* This check should be a part of http_server */
     server_config.max_open_sockets = (CONFIG_LWIP_MAX_SOCKETS - 3);
+    server_config.lru_purge_enable = true;
 
     // server initialization
     if (httpd_start(&server, &server_config) != ESP_OK) {
