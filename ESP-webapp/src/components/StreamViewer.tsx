@@ -1,6 +1,5 @@
 import { useState, useRef, useContext, useEffect, forwardRef, useImperativeHandle } from "react";
 import CanvasGraph from "./CanvasGraph";
-import { ENV, getAPIuri } from "@lib/env";
 import { LogContext, addLog } from "@lib/Logger";
 
 export interface StreamViewerProps {
@@ -9,6 +8,7 @@ export interface StreamViewerProps {
 export interface StreamViewerHandle {
   startStream: () => void;
   stopStream: () => void;
+  pushData: (data: Int32Array) => void;
   getSettings: () => {
     bufferSeconds: number;
     maxPoints: number;
@@ -29,7 +29,6 @@ const StreamViewer = forwardRef<StreamViewerHandle, StreamViewerProps>(({ sample
   const [maxPoints, setMaxPoints] = useState<number>(200);
   const [bufferSeconds, setBufferSeconds] = useState<number>(1);
 
-  const abortControllerRef = useRef<AbortController | null>(null);
   const maxPointsRef = useRef(maxPoints);
   const bufferSecondsRef = useRef(bufferSeconds);
   const sampleRateRef = useRef(sampleRate);
@@ -124,7 +123,7 @@ const StreamViewer = forwardRef<StreamViewerHandle, StreamViewerProps>(({ sample
   }, [isStreaming]);
 
 
-  const startStream = async () => {
+  const startStream = () => {
     if (isStreaming) return;
     setStreamData(new Array(maxPointsRef.current).fill(0));
 
@@ -133,75 +132,32 @@ const StreamViewer = forwardRef<StreamViewerHandle, StreamViewerProps>(({ sample
     lastChunkTimeRef.current = Date.now();
 
     setIsStreaming(true);
-
-    abortControllerRef.current = new AbortController();
-    const signal = abortControllerRef.current.signal;
-
-    try {
-      if (Logger) addLog(Logger, "Connecting to stream...");
-
-      const response = await fetch(`${getAPIuri(ENV)}program3stream`, { signal });
-      if (!response.body) throw new Error("ReadableStream not supported");
-
-      const reader = response.body.getReader();
-      let buffer = new Uint8Array(0);
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const newBuffer = new Uint8Array(buffer.length + value.length);
-        newBuffer.set(buffer);
-        newBuffer.set(value, buffer.length);
-
-        const view = new DataView(newBuffer.buffer, newBuffer.byteOffset, newBuffer.byteLength);
-        const newPoints: number[] = [];
-
-        let i = 0;
-        for (; i + 4 <= newBuffer.byteLength; i += 4) {
-          newPoints.push(view.getInt32(i, true));
-        }
-
-        buffer = newBuffer.slice(i);
-
-        if (newPoints.length > 0) {
-          const now = Date.now();
-          const dt = now - lastChunkTimeRef.current;
-          lastChunkTimeRef.current = now;
-
-          if (Logger) {
-            // Only log if dt > 0 to avoid logging initial zero-time delta
-            addLog(Logger, `Received chunk: ${newPoints.length} pts (delta: ${dt}ms)`);
-          }
-
-          // Push into the rendering buffer
-          dataBufferRef.current.push(...newPoints);
-        }
-      }
-
-      if (Logger) addLog(Logger, "Stream ended.");
-    } catch (err: any) {
-      if (err.name === 'AbortError') {
-        if (Logger) addLog(Logger, "Stream stopped by user.");
-      } else {
-        if (Logger) addLog(Logger, `Stream error: ${err.message}`);
-        console.error("Stream error", err);
-      }
-    } finally {
-      setIsStreaming(false);
-      abortControllerRef.current = null;
-    }
+    if (Logger) addLog(Logger, "ADC Stream Viewer active (Waiting for WebSocket data)");
   };
 
   const stopStream = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
+    setIsStreaming(false);
+  };
+
+  const pushData = (data: Int32Array) => {
+    if (!isStreaming) return;
+
+    const now = Date.now();
+    const dt = now - lastChunkTimeRef.current;
+    lastChunkTimeRef.current = now;
+
+    if (Logger) {
+      addLog(Logger, `Received chunk: ${data.length} pts (delta: ${dt}ms)`);
     }
+
+    // Push into the rendering buffer
+    dataBufferRef.current.push(...Array.from(data));
   };
 
   useImperativeHandle(ref, () => ({
     startStream,
     stopStream,
+    pushData,
     getSettings: () => ({
       bufferSeconds,
       maxPoints,

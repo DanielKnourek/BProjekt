@@ -7,6 +7,7 @@ type SignalType = "constant" | "sine" | "audio";
 interface DacStreamerProps {
   sampleRate: number;
   samplesPerFrame: number;
+  onDataReceived?: (data: Int32Array) => void;
 }
 
 export interface DacStreamerHandle {
@@ -28,7 +29,7 @@ export interface DacStreamerHandle {
   }) => void;
 }
 
-const DacStreamer = forwardRef<DacStreamerHandle, DacStreamerProps>(({ sampleRate, samplesPerFrame }, ref) => {
+const DacStreamer = forwardRef<DacStreamerHandle, DacStreamerProps>(({ sampleRate, samplesPerFrame, onDataReceived }, ref) => {
   const Logger = useContext(LogContext);
   const [isStreaming, setIsStreaming] = useState(false);
   const [signalType, setSignalType] = useState<SignalType>("constant");
@@ -77,6 +78,12 @@ const DacStreamer = forwardRef<DacStreamerHandle, DacStreamerProps>(({ sampleRat
       socket.onopen = () => {
         if (Logger) addLog(Logger, "DAC Stream Connected (WebSocket)");
         startDataLoop();
+      };
+
+      socket.onmessage = (event) => {
+        if (onDataReceived && event.data instanceof ArrayBuffer) {
+          onDataReceived(new Int32Array(event.data));
+        }
       };
 
       socket.onclose = () => {

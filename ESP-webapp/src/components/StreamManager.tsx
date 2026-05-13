@@ -273,6 +273,7 @@ const StreamManager: React.FC = () => {
               ref={dacStreamerRef}
               sampleRate={streamSampleRate}
               samplesPerFrame={streamSamplesPerFrame}
+              onDataReceived={(data) => streamViewerRef.current?.pushData(data)}
             />
         </div>
       </div>
