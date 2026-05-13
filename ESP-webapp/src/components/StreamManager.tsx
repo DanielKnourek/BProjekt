@@ -119,6 +119,7 @@ const StreamManager: React.FC = () => {
         } else {
           streamViewerRef.current?.stopStream();
           dacStreamerRef.current?.stopStreaming();
+          dacStreamerRef.current?.disconnect();
         }
       })
       .catch((err) => {
@@ -207,11 +208,10 @@ const StreamManager: React.FC = () => {
                 </button>
                 <button
                   className={`flex-1 rounded-lg py-2.5 font-bold text-sm transition-all shadow-sm active:scale-95 ${!isStreamActive
-                      ? "bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-400 border border-slate-200 dark:border-slate-600 cursor-not-allowed"
+                      ? "bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-400 border border-slate-200 dark:border-slate-600"
                       : "bg-red-500 text-white hover:bg-red-600"
                     }`}
                   onClick={() => toggleProgram(false)}
-                  disabled={!isStreamActive}
                 >
                   Disable System
                 </button>
@@ -282,6 +282,11 @@ const StreamManager: React.FC = () => {
       <StreamViewer
         ref={streamViewerRef}
         sampleRate={streamSampleRate}
+        onToggle={(active) => {
+          if (active) {
+            dacStreamerRef.current?.connect();
+          }
+        }}
       />
     </div>
   );

@@ -13,6 +13,8 @@ interface DacStreamerProps {
 export interface DacStreamerHandle {
   startStreaming: () => void;
   stopStreaming: () => void;
+  connect: () => Promise<void>;
+  disconnect: () => void;
   getSettings: () => {
     signalType: SignalType;
     sineFreq: number;
@@ -31,7 +33,8 @@ export interface DacStreamerHandle {
 
 const DacStreamer = forwardRef<DacStreamerHandle, DacStreamerProps>(({ sampleRate, samplesPerFrame, onDataReceived }, ref) => {
   const Logger = useContext(LogContext);
-  const [isStreaming, setIsStreaming] = useState(false);
+  const [isUplinkActive, setIsUplinkActive] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
   const [signalType, setSignalType] = useState<SignalType>("constant");
 
   // Signal parameters
@@ -58,15 +61,10 @@ const DacStreamer = forwardRef<DacStreamerHandle, DacStreamerProps>(({ sampleRat
     return base.replace(/^http/, "ws") + "program3data";
   };
 
-  const startStreaming = async () => {
-    if (isStreaming) return;
+  const connect = async () => {
+    if (wsRef.current) return;
 
-    setIsStreaming(true);
-    streamingRef.current = true;
     setError(null);
-    phaseRef.current = 0;
-    audioOffsetRef.current = 0;
-
     const wsUrl = getWsUri(ENV);
     if (Logger) addLog(Logger, `Connecting WebSocket to ${wsUrl}...`);
 
@@ -76,8 +74,9 @@ const DacStreamer = forwardRef<DacStreamerHandle, DacStreamerProps>(({ sampleRat
       wsRef.current = socket;
 
       socket.onopen = () => {
-        if (Logger) addLog(Logger, "DAC Stream Connected (WebSocket)");
-        startDataLoop();
+        if (Logger) addLog(Logger, "WebSocket Connected");
+        setIsConnected(true);
+        if (streamingRef.current) startDataLoop();
       };
 
       socket.onmessage = (event) => {
@@ -87,21 +86,48 @@ const DacStreamer = forwardRef<DacStreamerHandle, DacStreamerProps>(({ sampleRat
       };
 
       socket.onclose = () => {
-        if (streamingRef.current) {
-          if (Logger) addLog(Logger, "WebSocket connection closed.");
-          stopStreaming();
-        }
+        if (Logger) addLog(Logger, "WebSocket disconnected.");
+        wsRef.current = null;
+        setIsConnected(false);
+        setIsUplinkActive(false);
+        streamingRef.current = false;
       };
 
       socket.onerror = (ev) => {
         console.error("WebSocket Error:", ev);
         setError("WebSocket connection failed.");
-        stopStreaming();
+        disconnect();
       };
 
     } catch (err: any) {
       setError(`WS Setup error: ${err.message}`);
-      stopStreaming();
+      setIsConnected(false);
+    }
+  };
+
+  const disconnect = () => {
+    setIsUplinkActive(false);
+    streamingRef.current = false;
+
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+    setIsConnected(false);
+  };
+
+  const startStreaming = async () => {
+    if (isUplinkActive) return;
+
+    setIsUplinkActive(true);
+    streamingRef.current = true;
+    phaseRef.current = 0;
+    audioOffsetRef.current = 0;
+
+    if (!wsRef.current) {
+      await connect();
+    } else if (wsRef.current.readyState === WebSocket.OPEN) {
+      startDataLoop();
     }
   };
 
@@ -130,20 +156,16 @@ const DacStreamer = forwardRef<DacStreamerHandle, DacStreamerProps>(({ sampleRat
   };
 
   const stopStreaming = () => {
-    setIsStreaming(false);
+    setIsUplinkActive(false);
     streamingRef.current = false;
-
-    if (wsRef.current) {
-      wsRef.current.close();
-      wsRef.current = null;
-    }
-
     if (Logger) addLog(Logger, "DAC Upstream stopped.");
   };
 
   useImperativeHandle(ref, () => ({
     startStreaming,
     stopStreaming,
+    connect,
+    disconnect,
     getSettings: () => ({
       signalType,
       sineFreq,
@@ -217,6 +239,12 @@ const DacStreamer = forwardRef<DacStreamerHandle, DacStreamerProps>(({ sampleRat
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path></svg>
         </div>
         <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">DAC Upstream Control</h4>
+        {isConnected && (
+          <div className="flex items-center gap-2 px-2.5 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full text-[10px] font-black border border-indigo-100 dark:border-indigo-800 animate-in fade-in zoom-in duration-300">
+            <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse"></span>
+            CONNECTED
+          </div>
+        )}
       </div>
 
       {error && (
@@ -232,7 +260,7 @@ const DacStreamer = forwardRef<DacStreamerHandle, DacStreamerProps>(({ sampleRat
             className="flex-1 md:flex-none min-w-[180px] rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 p-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
             value={signalType}
             onChange={(e) => setSignalType(e.target.value as SignalType)}
-            disabled={isStreaming}
+            disabled={isUplinkActive}
           >
             <option value="constant">Constant (DC)</option>
             <option value="sine">Sine Wave</option>
@@ -240,15 +268,15 @@ const DacStreamer = forwardRef<DacStreamerHandle, DacStreamerProps>(({ sampleRat
           </select>
 
           <button
-            onClick={isStreaming ? stopStreaming : startStreaming}
-            className={`flex-1 md:flex-none md:min-w-[200px] rounded-lg py-2.5 px-6 text-center font-bold text-xs uppercase tracking-widest transition-all border shadow-sm active:scale-95 ${isStreaming
+            onClick={isUplinkActive ? stopStreaming : startStreaming}
+            className={`flex-1 md:flex-none md:min-w-[200px] rounded-lg py-2.5 px-6 text-center font-bold text-xs uppercase tracking-widest transition-all border shadow-sm active:scale-95 ${isUplinkActive
               ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800 ring-4 ring-indigo-500/10 cursor-default"
               : "bg-slate-50 dark:bg-slate-700 text-slate-400 dark:text-slate-400 border-slate-200 dark:border-slate-600 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-600"
               }`}
           >
             <div className="flex items-center justify-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${isStreaming ? 'bg-indigo-500 animate-pulse' : 'bg-slate-300 dark:bg-slate-600'}`}></span>
-              {isStreaming ? "Upstream Active" : "Start Upstream"}
+              <span className={`w-2 h-2 rounded-full ${isUplinkActive ? 'bg-indigo-500 animate-pulse' : 'bg-slate-300 dark:bg-slate-600'}`}></span>
+              {isUplinkActive ? "Upstream Active" : "Start Upstream"}
             </div>
           </button>
         </div>
@@ -262,14 +290,14 @@ const DacStreamer = forwardRef<DacStreamerHandle, DacStreamerProps>(({ sampleRat
                 value={constantValue}
                 onChange={(e) => setConstantValue(Number(e.target.value))}
                 className="flex-1 cursor-pointer accent-indigo-600"
-                disabled={isStreaming}
+                disabled={isUplinkActive}
               />
               <input
                 type="number" min="0" max="4095"
                 value={constantValue}
                 onChange={(e) => setConstantValue(Number(e.target.value))}
                 className="w-24 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 p-2 text-sm font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                disabled={isStreaming}
+                disabled={isUplinkActive}
               />
             </div>
           </div>
@@ -284,14 +312,14 @@ const DacStreamer = forwardRef<DacStreamerHandle, DacStreamerProps>(({ sampleRat
                 value={sineFreq}
                 onChange={(e) => setSineFreq(Number(e.target.value))}
                 className="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 p-2 text-sm font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                disabled={isStreaming}
+                disabled={isUplinkActive}
               />
               <input
                 type="range" min="0" max="5000" step="100"
                 value={sineFreq}
                 onChange={(e) => setSineFreq(Number(e.target.value) <= 0 ? 1 : Number(e.target.value))}
                 className="w-full cursor-pointer accent-indigo-600"
-                disabled={isStreaming}
+                disabled={isUplinkActive}
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -301,14 +329,14 @@ const DacStreamer = forwardRef<DacStreamerHandle, DacStreamerProps>(({ sampleRat
                 value={sineAmp}
                 onChange={(e) => setSineAmp(Number(e.target.value))}
                 className="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 p-2 text-sm font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                disabled={isStreaming}
+                disabled={isUplinkActive}
               />
               <input
                 type="range" min="0" max="2047" step={64}
                 value={sineAmp}
                 onChange={(e) => setSineAmp(Number(e.target.value))}
                 className="w-full cursor-pointer accent-indigo-600"
-                disabled={isStreaming}
+                disabled={isUplinkActive}
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -318,14 +346,14 @@ const DacStreamer = forwardRef<DacStreamerHandle, DacStreamerProps>(({ sampleRat
                 value={offset}
                 onChange={(e) => setOffset(Number(e.target.value))}
                 className="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 p-2 text-sm font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                disabled={isStreaming}
+                disabled={isUplinkActive}
               />
               <input
                 type="range" min="0" max="4095"
                 value={offset}
                 onChange={(e) => setOffset(Number(e.target.value))}
                 className="w-full cursor-pointer accent-indigo-600"
-                disabled={isStreaming}
+                disabled={isUplinkActive}
               />
             </div>
           </div>
@@ -339,7 +367,7 @@ const DacStreamer = forwardRef<DacStreamerHandle, DacStreamerProps>(({ sampleRat
                 type="file" accept=".wav"
                 onChange={handleFileChange}
                 className="flex-1 text-sm text-slate-400 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-indigo-50 dark:file:bg-indigo-900/30 file:text-indigo-700 dark:file:text-indigo-300 hover:file:bg-indigo-100 dark:hover:file:bg-indigo-900/50 cursor-pointer"
-                disabled={isStreaming}
+                disabled={isUplinkActive}
               />
               {audioBuffer && (
                 <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-full text-[10px] font-bold border border-emerald-100 dark:border-emerald-800">

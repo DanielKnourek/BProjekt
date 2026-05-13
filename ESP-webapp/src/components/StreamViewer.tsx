@@ -4,6 +4,7 @@ import { LogContext, addLog } from "@lib/Logger";
 
 export interface StreamViewerProps {
   sampleRate?: number;
+  onToggle?: (active: boolean) => void;
 }
 export interface StreamViewerHandle {
   startStream: () => void;
@@ -19,9 +20,10 @@ export interface StreamViewerHandle {
     maxPoints?: number;
     useFixedScale?: boolean;
   }) => void;
+  getStreaming: () => boolean;
 }
 
-const StreamViewer = forwardRef<StreamViewerHandle, StreamViewerProps>(({ sampleRate = 1000 }, ref) => {
+const StreamViewer = forwardRef<StreamViewerHandle, StreamViewerProps>(({ sampleRate = 1000, onToggle }, ref) => {
   const Logger = useContext(LogContext);
   const [streamData, setStreamData] = useState<number[]>([]);
    const [isStreaming, setIsStreaming] = useState(false);
@@ -168,6 +170,7 @@ const StreamViewer = forwardRef<StreamViewerHandle, StreamViewerProps>(({ sample
       if (settings.maxPoints !== undefined) setMaxPoints(settings.maxPoints);
       if (settings.useFixedScale !== undefined) setUseFixedScale(settings.useFixedScale);
     },
+    getStreaming: () => isStreaming,
   }));
 
 
@@ -230,7 +233,12 @@ const StreamViewer = forwardRef<StreamViewerHandle, StreamViewerProps>(({ sample
           </div>
           
           <button
-            onClick={isStreaming ? stopStream : startStream}
+            onClick={() => {
+              const next = !isStreaming;
+              if (onToggle) onToggle(next);
+              if (next) startStream();
+              else stopStream();
+            }}
             className={`flex-1 md:flex-none md:min-w-[200px] rounded-lg py-2.5 px-6 text-center font-bold text-xs uppercase tracking-widest transition-all border shadow-sm active:scale-95 ${isStreaming
               ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800 ring-4 ring-indigo-500/10 cursor-default"
               : "bg-slate-50 dark:bg-slate-700 text-slate-400 dark:text-slate-400 border-slate-200 dark:border-slate-600 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-600"

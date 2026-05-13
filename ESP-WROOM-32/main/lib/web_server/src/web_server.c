@@ -131,14 +131,24 @@ static esp_err_t handler_get_api_program3(httpd_req_t* req) {
 
 #define MAX_WS_SUBSCRIBERS 4
 static int s_ws_clients[MAX_WS_SUBSCRIBERS] = {-1, -1, -1, -1};
+static int s_active_streamer_fd = -1;
 static SemaphoreHandle_t s_ws_mutex = NULL;
 
 static void ws_client_add(int fd) {
     if (xSemaphoreTake(s_ws_mutex, portMAX_DELAY) == pdTRUE) {
+        int count = 0;
+        for (int i = 0; i < MAX_WS_SUBSCRIBERS; i++) {
+            if (s_ws_clients[i] == fd) {
+                xSemaphoreGive(s_ws_mutex);
+                return; // Already added
+            }
+            if (s_ws_clients[i] != -1) count++;
+        }
+
         for (int i = 0; i < MAX_WS_SUBSCRIBERS; i++) {
             if (s_ws_clients[i] == -1) {
                 s_ws_clients[i] = fd;
-                ESP_LOGI(TAG, "Added WS client fd %d", fd);
+                ESP_LOGI(TAG, "Added WS client fd %d (Total active: %d)", fd, count + 1);
                 break;
             }
         }
@@ -148,19 +158,28 @@ static void ws_client_add(int fd) {
 
 static void ws_client_remove(int fd) {
     if (xSemaphoreTake(s_ws_mutex, portMAX_DELAY) == pdTRUE) {
+        bool found = false;
         for (int i = 0; i < MAX_WS_SUBSCRIBERS; i++) {
             if (s_ws_clients[i] == fd) {
                 s_ws_clients[i] = -1;
-                ESP_LOGI(TAG, "Removed WS client fd %d", fd);
-                break;
+                found = true;
             }
+        }
+        
+        if (found) {
+            if (s_active_streamer_fd == fd) {
+                s_active_streamer_fd = -1;
+                ESP_LOGI(TAG, "Active streamer fd %d disconnected, lock released", fd);
+            }
+            ESP_LOGI(TAG, "Removed all instances of WS client fd %d", fd);
         }
         xSemaphoreGive(s_ws_mutex);
     }
 }
 
-static void ws_close_handler(httpd_handle_t hd, int sockfd) {
-    ws_client_remove(sockfd);
+static void ws_free_ctx(void *ctx) {
+    int fd = (int)(intptr_t)ctx;
+    ws_client_remove(fd);
 }
 
 void web_server_push_adc_values(const int32_t *adc_values, size_t n_adc_values) {
@@ -178,8 +197,10 @@ void web_server_push_adc_values(const int32_t *adc_values, size_t n_adc_values) 
 
                 esp_err_t ret = httpd_ws_send_frame_async(s_server_handle, fd, &ws_pkt);
                 if (ret != ESP_OK) {
-                    ESP_LOGW(TAG, "Failed to send WS frame to fd %d", fd);
+                    ESP_LOGW(TAG, "Failed to send WS frame to fd %d, forcing close", fd);
                     s_ws_clients[i] = -1;
+                    // Force the server to close this socket immediately
+                    httpd_sess_trigger_close(s_server_handle, fd);
                 }
             }
         }
@@ -190,7 +211,10 @@ void web_server_push_adc_values(const int32_t *adc_values, size_t n_adc_values) 
 static esp_err_t handler_ws_program3data(httpd_req_t *req) {
     if (req->method == HTTP_GET) {
         ESP_LOGI(TAG, "WS handshake successful");
-        ws_client_add(httpd_req_to_sockfd(req));
+        int fd = httpd_req_to_sockfd(req);
+        ws_client_add(fd);
+        req->sess_ctx = (void *)(intptr_t)fd;
+        req->free_ctx = ws_free_ctx;
         return ESP_OK;
     }
 
@@ -207,8 +231,22 @@ static esp_err_t handler_ws_program3data(httpd_req_t *req) {
         if (!buf) return ESP_ERR_NO_MEM;
         ws_pkt.payload = buf;
         ret = httpd_ws_recv_frame(req, &ws_pkt, ws_pkt.len);
+        
         if (ret == ESP_OK && ws_pkt.type == HTTPD_WS_TYPE_BINARY) {
-            send_stream_data((int32_t*)ws_pkt.payload, ws_pkt.len / sizeof(int32_t));
+            int cur_fd = httpd_req_to_sockfd(req);
+            
+            // Streamer Locking Logic
+            if (s_active_streamer_fd == -1) {
+                s_active_streamer_fd = cur_fd;
+                ESP_LOGI(TAG, "Client fd %d locked as active streamer", cur_fd);
+            }
+
+            if (s_active_streamer_fd == cur_fd) {
+                // Only the locked streamer can forward data to UART
+                send_stream_data((int32_t*)ws_pkt.payload, ws_pkt.len / sizeof(int32_t));
+            } else {
+                ESP_LOGW(TAG, "Ignoring binary data from fd %d (fd %d is active)", cur_fd, s_active_streamer_fd);
+            }
         }
         free(buf);
     }
@@ -309,10 +347,14 @@ httpd_handle_t start_webserver(void) {
     server_config.max_uri_handlers = 12;
     server_config.server_port = HTTP_SERVER_PORT;
     server_config.uri_match_fn = httpd_uri_match_wildcard;
-    server_config.close_fn = ws_close_handler;
+    
+    // Aggressive timeouts and NO keep-alive to survive with only 8 VFS slots
+    server_config.keep_alive_enable = false;
+    server_config.recv_wait_timeout = 2;
+    server_config.send_wait_timeout = 2;
 
     /* This check should be a part of http_server */
-    server_config.max_open_sockets = (CONFIG_LWIP_MAX_SOCKETS - 3);
+    server_config.max_open_sockets = (CONFIG_LWIP_MAX_SOCKETS - 3-3);
     server_config.lru_purge_enable = true;
 
     // server initialization

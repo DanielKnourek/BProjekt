@@ -125,9 +125,9 @@ static void send_frame(FramePayload* payload) {
     int txBytes = uart_write_bytes(UART_NUM_1, total_buf, header_size + payload_size);
 
     if(payload->payload_case != FRAME_PAYLOAD__PAYLOAD_TEST_BANDWIDTH_DATA) {
-        ESP_LOGI(TAG, "Sent frame: header_size=%zu, payload_size=%zu, crc=0x%08" PRIx32,
+        ESP_LOGD(TAG, "Sent frame: header_size=%zu, payload_size=%zu, crc=0x%08" PRIx32,
              header_size, payload_size, header.crc);
-             ESP_LOGI(TAG, "Bytes sent: %d", txBytes);
+             ESP_LOGD(TAG, "Bytes sent: %d", txBytes);
     }
 
     free(payload_buf);
