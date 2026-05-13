@@ -395,7 +395,7 @@ static void rx_task(void* arg) {
                     __AUTO_FREE_MSG__ FramePayload* recieved_data =
                         create_frame_payload(buffer, total_frame_size);
                     if (recieved_data) {
-                        ESP_LOGD(RX_TASK_TAG, "Successfully processed message");
+                        ESP_LOGD(RX_TASK_TAG, "Successfully processed message %d", recieved_data->payload_case);
                     }
                     
                     memmove(buffer, buffer + total_frame_size, buffer_len - total_frame_size);

@@ -9,6 +9,16 @@ export interface StreamViewerProps {
 export interface StreamViewerHandle {
   startStream: () => void;
   stopStream: () => void;
+  getSettings: () => {
+    bufferSeconds: number;
+    maxPoints: number;
+    useFixedScale: boolean;
+  };
+  setSettings: (settings: {
+    bufferSeconds?: number;
+    maxPoints?: number;
+    useFixedScale?: boolean;
+  }) => void;
 }
 
 const StreamViewer = forwardRef<StreamViewerHandle, StreamViewerProps>(({ sampleRate = 1000 }, ref) => {
@@ -42,6 +52,10 @@ const StreamViewer = forwardRef<StreamViewerHandle, StreamViewerProps>(({ sample
     let animationFrameId: number;
     let lastDrawTime = performance.now();
     let fractionalPoints = 0;
+    
+    // Throttling state
+    let lastUpdateTime = performance.now();
+    let pendingPoppedPoints: number[] = [];
 
     const drawLoop = (time: number) => {
       const dt = time - lastDrawTime;
@@ -74,12 +88,21 @@ const StreamViewer = forwardRef<StreamViewerHandle, StreamViewerProps>(({ sample
 
           if (pointsToPop > 0) {
             fractionalPoints -= pointsToPop;
-            // Pop from the beginning of the buffer
+            // Pop from the beginning of the buffer and accumulate
             const popped = dataBufferRef.current.splice(0, pointsToPop);
+            pendingPoppedPoints.push(...popped);
+          }
+
+          // Update React state at approx 30FPS (33.3ms) to reduce re-render overhead
+          const timeSinceUpdate = time - lastUpdateTime;
+          if (timeSinceUpdate >= 33 && pendingPoppedPoints.length > 0) {
+            const currentBatch = [...pendingPoppedPoints];
+            pendingPoppedPoints = [];
+            lastUpdateTime = time;
 
             setStreamData((prev) => {
               const limit = maxPointsRef.current;
-              let next = [...prev, ...popped];
+              let next = [...prev, ...currentBatch];
               if (next.length < limit) {
                 // Pad with zeros at the beginning so the graph stays a constant width
                 next = [...new Array(limit - next.length).fill(0), ...next];
@@ -99,6 +122,7 @@ const StreamViewer = forwardRef<StreamViewerHandle, StreamViewerProps>(({ sample
 
     return () => cancelAnimationFrame(animationFrameId);
   }, [isStreaming]);
+
 
   const startStream = async () => {
     if (isStreaming) return;
@@ -178,7 +202,18 @@ const StreamViewer = forwardRef<StreamViewerHandle, StreamViewerProps>(({ sample
   useImperativeHandle(ref, () => ({
     startStream,
     stopStream,
+    getSettings: () => ({
+      bufferSeconds,
+      maxPoints,
+      useFixedScale,
+    }),
+    setSettings: (settings) => {
+      if (settings.bufferSeconds !== undefined) setBufferSeconds(settings.bufferSeconds);
+      if (settings.maxPoints !== undefined) setMaxPoints(settings.maxPoints);
+      if (settings.useFixedScale !== undefined) setUseFixedScale(settings.useFixedScale);
+    },
   }));
+
 
   return (
     <div className="mb-4 rounded-xl bg-white dark:bg-slate-800 p-4 shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">

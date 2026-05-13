@@ -12,6 +12,20 @@ interface DacStreamerProps {
 export interface DacStreamerHandle {
   startStreaming: () => void;
   stopStreaming: () => void;
+  getSettings: () => {
+    signalType: SignalType;
+    sineFreq: number;
+    sineAmp: number;
+    offset: number;
+    constantValue: number;
+  };
+  setSettings: (settings: {
+    signalType?: SignalType;
+    sineFreq?: number;
+    sineAmp?: number;
+    offset?: number;
+    constantValue?: number;
+  }) => void;
 }
 
 const DacStreamer = forwardRef<DacStreamerHandle, DacStreamerProps>(({ sampleRate, samplesPerFrame }, ref) => {
@@ -123,7 +137,22 @@ const DacStreamer = forwardRef<DacStreamerHandle, DacStreamerProps>(({ sampleRat
   useImperativeHandle(ref, () => ({
     startStreaming,
     stopStreaming,
+    getSettings: () => ({
+      signalType,
+      sineFreq,
+      sineAmp,
+      offset,
+      constantValue,
+    }),
+    setSettings: (settings) => {
+      if (settings.signalType !== undefined) setSignalType(settings.signalType);
+      if (settings.sineFreq !== undefined) setSineFreq(settings.sineFreq);
+      if (settings.sineAmp !== undefined) setSineAmp(settings.sineAmp);
+      if (settings.offset !== undefined) setOffset(settings.offset);
+      if (settings.constantValue !== undefined) setConstantValue(settings.constantValue);
+    },
   }));
+
 
   const generateSamples = (count: number): number[] => {
     const samples: number[] = [];

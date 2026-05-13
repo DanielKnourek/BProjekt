@@ -92,7 +92,7 @@ static esp_err_t handler_get_api_program1(httpd_req_t* req) {
         uint8_t req_val = atoi(param);
         gpio_set_level(2, req_val);
         send_test_int_config(req_val > 0);
-    }
+    }   
     
     const char* resp = "Program 1 status";
     httpd_resp_send(req, resp, strlen(resp));
