@@ -9,6 +9,7 @@ static StreamConfig stream_config = StreamConfig_init_zero;
 static uint32_t last_test_int_tick = 0;
 static uint32_t last_bandwidth_tick = 0;
 static uint32_t last_stream_tick = 0;
+static uint32_t stream_sample_index = 0;
 
 static int32_t test_int_counter = 0;
 
@@ -57,6 +58,12 @@ void ProgramMgr_SetStreamConfig(StreamConfig *config) {
     extern ADC_HandleTypeDef hadc3;
     
     if (stream_config.enable) {
+        // Reset FIFO and state to ensure clean start
+        dac_fifo_read = 0;
+        dac_fifo_write = 0;
+        last_stream_tick = HAL_GetTick(); // Start fresh
+        stream_sample_index = 0;
+        
         HAL_TIM_PWM_Start(&htim13, TIM_CHANNEL_1);
         HAL_ADC_Start(&hadc3);
     } else {
@@ -146,21 +153,19 @@ void ProgramMgr_Process(void) {
         uint32_t sample_interval_ms = (sample_rate_hz > 0) ? (1000 / sample_rate_hz) : 10;
         
         static int32_t adc_buffer[1000]; // Max size matching protobuf definition
-        static uint32_t sample_index = 0;
-        static uint32_t last_sample_tick = 0;
         
         // Initialize tick on first run
-        if (last_sample_tick == 0) last_sample_tick = tick;
+        if (last_stream_tick == 0) last_stream_tick = tick;
         
-        if (tick - last_sample_tick >= sample_interval_ms) {
-            if (tick - last_sample_tick > sample_interval_ms * 2) {
-                last_sample_tick = tick;
+        if (tick - last_stream_tick >= sample_interval_ms) {
+            if (tick - last_stream_tick > sample_interval_ms * 2) {
+                last_stream_tick = tick;
             } else {
-                last_sample_tick += sample_interval_ms;
+                last_stream_tick += sample_interval_ms;
             }
             
             // 1. Output next value from FIFO to DAC (PWM on A3)
-            int32_t dac_val = 2048; // Default mid-point if empty
+            static int32_t dac_val = 2048;
             if (dac_fifo_read != dac_fifo_write) {
                 dac_val = dac_fifo[dac_fifo_read];
                 dac_fifo_read = (dac_fifo_read + 1) % DAC_FIFO_SIZE;
@@ -181,14 +186,14 @@ void ProgramMgr_Process(void) {
             }
             HAL_ADC_Stop(&hadc3);
             
-            adc_buffer[sample_index] = current_adc_reading;
+            adc_buffer[stream_sample_index] = current_adc_reading;
             
-            sample_index++;
+            stream_sample_index++;
             
             // 3. When buffer has enough samples, send frame to ESP
-            if (sample_index >= samples_per_frame) {
+            if (stream_sample_index >= samples_per_frame) {
                 SerialLink_SendStreamData(adc_buffer, samples_per_frame, NULL, 0);
-                sample_index = 0;
+                stream_sample_index = 0;
             }
         }
     }
