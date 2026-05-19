@@ -19,6 +19,11 @@ static const char* TAG = "web_server.c";
 // Global server handle for async communication
 static httpd_handle_t s_server_handle = NULL;
 
+#define MAX_WS_SUBSCRIBERS 4
+static int s_ws_clients[MAX_WS_SUBSCRIBERS] = {-1, -1, -1, -1};
+static int s_active_streamer_fd = -1;
+static SemaphoreHandle_t s_ws_mutex = NULL;
+
 static esp_err_t handler_api_error(httpd_req_t* req) {
 #define STR "Invalid request"
     httpd_resp_send(req, STR, strlen(STR));
@@ -120,6 +125,20 @@ static esp_err_t handler_get_api_program3(httpd_req_t* req) {
         }
         
         send_stream_config(req_val > 0, sample_rate_hz, samples_per_frame);
+        
+        if (req_val == 0 && s_server_handle != NULL) {
+            // Drop all WebSockets instantly when the stream is turned off
+            if (xSemaphoreTake(s_ws_mutex, portMAX_DELAY) == pdTRUE) {
+                for (int i = 0; i < MAX_WS_SUBSCRIBERS; i++) {
+                    int fd = s_ws_clients[i];
+                    if (fd != -1) {
+                        ESP_LOGI(TAG, "Dropping WS fd %d due to stream stop", fd);
+                        httpd_sess_trigger_close(s_server_handle, fd);
+                    }
+                }
+                xSemaphoreGive(s_ws_mutex);
+            }
+        }
     }
     
     const char* resp = "Program 3 status";
@@ -128,11 +147,6 @@ static esp_err_t handler_get_api_program3(httpd_req_t* req) {
     return ESP_OK;
 }
 
-
-#define MAX_WS_SUBSCRIBERS 4
-static int s_ws_clients[MAX_WS_SUBSCRIBERS] = {-1, -1, -1, -1};
-static int s_active_streamer_fd = -1;
-static SemaphoreHandle_t s_ws_mutex = NULL;
 
 static void ws_client_add(int fd) {
     if (xSemaphoreTake(s_ws_mutex, portMAX_DELAY) == pdTRUE) {
