@@ -264,8 +264,6 @@ void Error_Handler(void);
 #define ARDUINO_A1_GPIO_Port GPIOF
 #define ARDUINO_A2_Pin GPIO_PIN_9
 #define ARDUINO_A2_GPIO_Port GPIOF
-#define ARDUINO_A3_Pin GPIO_PIN_8
-#define ARDUINO_A3_GPIO_Port GPIOF
 #define FMC_SDCKE0_Pin GPIO_PIN_3
 #define FMC_SDCKE0_GPIO_Port GPIOC
 #define FMC_D0_Pin GPIO_PIN_14

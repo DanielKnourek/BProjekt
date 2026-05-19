@@ -11,7 +11,7 @@
  *
  * This software is licensed under terms that can be found in the LICENSE file
  * in the root directory of this software component.
- * If no LICENSE file comes with this software, it is provided AS-IS.
+ * If no LICENSE file comes with this sofětware, it is provided AS-IS.
  *
  ******************************************************************************
  */
@@ -23,8 +23,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdint.h>
 #include <stdlib.h>
 #include "flag_tools.h"
+#include "serial_link.h"
+#include "program_mgr.h"
 
 /* USER CODE END Includes */
 
@@ -92,6 +95,7 @@ TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim5;
 TIM_HandleTypeDef htim8;
 TIM_HandleTypeDef htim12;
+TIM_HandleTypeDef htim13;
 
 UART_HandleTypeDef huart6;
 DMA_HandleTypeDef hdma_usart6_rx;
@@ -128,6 +132,7 @@ static void MX_TIM8_Init(void);
 static void MX_TIM12_Init(void);
 static void MX_USART6_UART_Init(void);
 static void MX_ADC3_Init(void);
+static void MX_TIM13_Init(void);
 void MX_USB_HOST_Process(void);
 
 /* USER CODE BEGIN PFP */
@@ -139,26 +144,36 @@ void MX_USB_HOST_Process(void);
 flag_set Flags;
 
 #define FT_BTN1 FT_Flag0
+#define FT_ACTION_USER FT_Flag7
+#define FT_ACTION_RECIEVE FT_Flag1
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == BTN1_Pin) {
 		set_flag(&Flags, FT_BTN1);
 		return;
 	}
 	__NOP();
-
 }
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-  /* Prevent unused argument(s) compilation warning */
-	if(huart == &huart6){
-		set_flag(&Flags, FT_Flag1);
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+	/* Prevent unused argument(s) compilation warning */
+	if (huart == &huart6) {
+		set_flag(&Flags, FT_ACTION_RECIEVE);
 	}
 
-  /* NOTE : This function should not be modified, when the callback is needed,
-            the HAL_UART_RxCpltCallback can be implemented in the user file.
-   */
+	/* NOTE : This function should not be modified, when the callback is needed,
+	 the HAL_UART_RxCpltCallback can be implemented in the user file.
+	 */
 }
+
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
+	SerialLink_RxEventCallback(huart, Size);
+}
+
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
+	SerialLink_ErrorCallback(huart);
+}
+
 //void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 //{
 //  /* Prevent unused argument(s) compilation warning */
@@ -227,28 +242,18 @@ int main(void)
   MX_USART6_UART_Init();
   MX_ADC3_Init();
   MX_USB_HOST_Init();
+  MX_TIM13_Init();
   /* USER CODE BEGIN 2 */
 
 	/* INITIALIZE GLOBAL VARIABLES BEGIN */
 	init_flags(&Flags);
-
-//  Flags = (flag_set) {0};
-
-//  init_flags(flgs);
-
 	/* INITIALIZE GLOBAL VARIABLES END */
 
-//  HAL_UART_Receive_DMA(&huart6, pData, Size);
-//  HAL_UART_Transmit_DMA(&huart6, pData, Size);
 	uint32_t lastTick = 0;
-	uint8_t state = 0;
 	uint32_t currentTick = 0;
-//	GPIO_PinState lastStateBTN1 = GPIO_PIN_RESET;
-//	GPIO_PinState currentStateBTN1 = GPIO_PIN_RESET;
 
-	char rx[10];
-	char tx[10];
-	HAL_UART_Receive_DMA(&huart6, rx, sizeof(rx));
+	ProgramMgr_Init();
+	SerialLink_Init(&huart6);
 
   /* USER CODE END 2 */
 
@@ -260,54 +265,69 @@ int main(void)
     MX_USB_HOST_Process();
 
     /* USER CODE BEGIN 3 */
-    	if(is_set(&Flags, FT_Flag1)){
-    		reset_flag(&Flags, FT_Flag1);
-    		memcpy(tx, rx, sizeof(tx));
-    		HAL_UART_Receive_DMA(&huart6, rx, sizeof(rx));
 
-    		__NOP();
-
-    		HAL_UART_Transmit_DMA(&huart6, tx, sizeof(tx));
-    	}
-
-		if ((currentTick - lastTick) >= 500) {
+		if ((currentTick - lastTick) >= 50) {
 			lastTick = currentTick;
 
-			if (is_set(&Flags, FT_BTN1)) {
+			//detected interrupt of BTN1 and set FT_Flag7 only for first occurrence BTN1 in span of 50ms
+			if (Flags.is_set(&Flags, FT_BTN1)) {
 				reset_flag(&Flags, FT_BTN1);
-				if(is_set(&Flags, FT_Flag7)){
-					reset_flag(&Flags, FT_Flag7);
-				}
-				else{
-					set_flag(&Flags, FT_Flag7);
-				}
-			}
-
-			if (is_set(&Flags, FT_Flag7)) {
-				if(!is_set(&Flags, FT_Flag6)){ // First write to USART after BTN1
-					set_flag(&Flags, FT_Flag6);
-					const char *msg = "Hello wrd";
-					memset(tx, 0, sizeof(tx));
-		    		memcpy(tx, msg, sizeof(tx));
-
-		    		HAL_UART_Transmit_DMA(&huart6, tx, sizeof(tx));
-				}
-				switch ((int) state) {
-				case 1:
-					state = 0;
-					HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
-
-					break;
-				case 0:
-				default:
-					state = 1;
-
-					HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
-					break;
-				}
 			}
 		}
 
+		SerialLink_Process();
+		ProgramMgr_Process();
+
+		/*
+		 if(is_set(&Flags, FT_Flag1)){
+		 reset_flag(&Flags, FT_Flag1);
+
+		 if(rx[0] == 'Y') {
+		 //    			set_flag(&Flags, FT_Flag5);
+		 HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
+		 }
+		 if(rx[0] == 'N') {
+		 //    			reset_flag(&Flags, FT_Flag5);
+		 HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_RESET);
+		 }
+		 memset(rx, 'F', sizeof(rx));
+		 HAL_UART_Receive_DMA(&huart6, (uint8_t *)rx, sizeof(rx));
+		 }
+
+		 if ((currentTick - lastTick) >= 50) {
+		 lastTick = currentTick;
+
+		 if (is_set(&Flags, FT_BTN1)) { // detected interrupt of BTN1
+		 reset_flag(&Flags, FT_BTN1);
+		 if(is_set(&Flags, FT_Flag7)){
+		 reset_flag(&Flags, FT_Flag7);
+		 }
+		 else{
+		 set_flag(&Flags, FT_Flag7);
+		 }
+		 }
+
+		 //			if (is_set(&Flags, FT_Flag7)) {
+		 //					set_flag(&Flags, FT_Flag6);
+		 memset(tx, 0, sizeof(tx));
+		 if(is_set(&Flags, FT_Flag7)){
+		 memcpy(tx, TurnOnMessage, sizeof(*TurnOnMessage));
+		 }else{
+		 memcpy(tx, TurnOffMessage, sizeof(*TurnOffMessage));
+		 }
+
+		 HAL_UART_Transmit_DMA(&huart6, (uint8_t *)tx, sizeof(tx));
+
+		 //			}
+		 }
+		 */
+
+		// decode
+//			aliveStatus message_dec = aliveStatus_init_zero;
+//			pb_istream_t stream_dec = pb_istream_from_buffer(buffer, message_length);
+//	        status = pb_decode(&stream_dec, aliveStatus_fields, &message_dec);
+//
+//	        printf("Your lucky number was %d!\n", (int)message_dec.data);
 	}
   /* USER CODE END 3 */
 }
@@ -434,9 +454,9 @@ static void MX_ADC3_Init(void)
 
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_4;
+  sConfig.Channel = ADC_CHANNEL_0;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  sConfig.SamplingTime = ADC_SAMPLETIME_480CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -1344,6 +1364,52 @@ static void MX_TIM12_Init(void)
 
   /* USER CODE END TIM12_Init 2 */
   HAL_TIM_MspPostInit(&htim12);
+
+}
+
+/**
+  * @brief TIM13 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM13_Init(void)
+{
+
+  /* USER CODE BEGIN TIM13_Init 0 */
+
+  /* USER CODE END TIM13_Init 0 */
+
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM13_Init 1 */
+
+  /* USER CODE END TIM13_Init 1 */
+  htim13.Instance = TIM13;
+  htim13.Init.Prescaler = 0;
+  htim13.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim13.Init.Period = 4095;
+  htim13.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim13.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim13) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim13) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim13, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM13_Init 2 */
+
+  /* USER CODE END TIM13_Init 2 */
+  HAL_TIM_MspPostInit(&htim13);
 
 }
 

@@ -6,16 +6,21 @@
  */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef INC_FLAG_TOOLS_H_
-#define INC_FLAG_TOOLS_H_
+#ifndef FLAG_TOOLS_FLAG_TOOLS_H_
+#define FLAG_TOOLS_FLAG_TOOLS_H_
 
 /* Includes ------------------------------------------------------------------*/
 #include <stdint.h>
 
 /* Exported types ------------------------------------------------------------*/
-typedef struct {
-	 uint8_t set;
-} flag_set ;
+typedef struct flag_set
+{
+	uint8_t set;
+	// Function pointers for operations
+	void (*set_flag)(struct flag_set *flags, uint8_t flag_mask);
+	void (*reset_flag)(struct flag_set *flags, uint8_t flag_mask);
+	uint8_t (*is_set)(struct flag_set *flags, uint8_t flag_mask);
+} flag_set;
 
 /* Exported constants --------------------------------------------------------*/
 #define FT_Flag0 ((uint8_t)1 << 0)
@@ -27,9 +32,15 @@ typedef struct {
 #define FT_Flag6 ((uint8_t)1 << 6)
 #define FT_Flag7 ((uint8_t)1 << 7)
 
+#define FT_BTN1 FT_Flag0
+#define FT_ACTION_USER FT_Flag7
+#define FT_ACTION_RECIEVE FT_Flag1
+
+extern flag_set Flags;
+
 /* Exported functions --------------------------------------------------------*/
 
-//flag_set init_flags();
+// flag_set init_flags();
 void init_flags(flag_set *flags);
 
 void set_flag(flag_set *flags, uint8_t flag_mask);
@@ -37,23 +48,4 @@ void reset_flag(flag_set *flags, uint8_t flag_mask);
 
 uint8_t is_set(flag_set *flags, uint8_t flag_mask);
 
-
-
-void init_flags(flag_set *flags){
-	flags->set = 0;
-}
-
-void set_flag(flag_set *flags, uint8_t flag_mask){
-    flags->set = flags->set | flag_mask;
-}
-
-void reset_flag(flag_set *flags, uint8_t flag_mask){
-    flags->set = flags->set & ~flag_mask;
-}
-
-uint8_t is_set(flag_set *flags, uint8_t flag_mask){
-    return (flags->set & flag_mask) == flag_mask;
-}
-
-
-#endif /* INC_FLAG_TOOLS_H_ */
+#endif /* FLAG_TOOLS_FLAG_TOOLS_H_ */
