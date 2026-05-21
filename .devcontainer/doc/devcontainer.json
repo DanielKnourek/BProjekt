@@ -1,0 +1,42 @@
+{
+    "name": "TeX Live base",
+    "dockerFile": "texlive.dockerfile",
+    // Mount the parent directory to allow Git to find the root, especially for worktrees
+    "workspaceFolder": "/workspace/doc",
+    "mounts": [
+        "source=.,target=/workspace,type=bind"
+    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "james-yu.latex-workshop",
+                "tecosaur.latex-utilities",
+                "yzhang.markdown-all-in-one",
+                "streetsidesoftware.code-spell-checker",
+                "streetsidesoftware.code-spell-checker-czech"
+            ],
+            "settings": {
+                "editor.suggestSelection": "recentlyUsedByPrefix",
+                "editor.defaultFormatter": "James-Yu.latex-workshop",
+                "files.trimTrailingWhitespace": true,
+                "latex-workshop.synctex.afterBuild.enabled": true,
+                "latex-workshop.chktex.enabled": true,
+                "latex-workshop.view.pdf.viewer": "tab",
+                "latex-workshop.intellisense.package.enabled": true,
+                "latex-workshop.latex.clean.subfolder.enabled": true,
+                "latex-workshop.latex.autoClean.run":"onFailed",
+                "latex-workshop.latex.autoBuild.run": "onSave",
+                "latex-workshop.latex.recipe.default": "first",
+                "latex-workshop.latex.outDir": "aux",
+                "latex-workshop.latex.external.build.args": [
+                    "--shell-escape"
+                ],
+                "latex-workshop.texdoc.args": [
+                    "--view",
+                    "--shell-escape"
+                ],
+                "cSpell.language": "cs",
+            }
+        }
+    }
+}
