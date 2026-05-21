@@ -23,10 +23,9 @@ RUN curl -L http://cpanmin.us | perl - App::cpanminus \
     && cpanm File::HomeDir \
     && cpanm Unicode::GCString
 
-# add ssh for git
-RUN apt install -y openssh-client
-# Clean up
-RUN apt-get autoremove -y \
+# add ssh for git and clean up
+RUN apt-get update && apt-get install -y --no-install-recommends openssh-client \
+    && apt-get autoremove -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 ENV DEBIAN_FRONTEND=dialog \
