@@ -1,0 +1,8 @@
+menu "Application - Wifi configuration"
+    config HTTP_SERVER_PORT
+        int "Default port for web app"
+        default 80
+        help
+            Set the Maximum retry to avoid station reconnecting to the AP unlimited when the AP is really inexistent.
+        
+endmenu

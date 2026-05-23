@@ -1,0 +1,183 @@
+\documentclass[FM,Proj]{tulthesis}
+% tento dokument používá balíky specifické pro XeLaTeX a lze jej přeložit
+% jen XeLaTeXem, nemáte-li instalována použitá (komerční) písma, změňte
+% nebo vymažte příkazy \set...font na následujících řádcích
+
+% Autor šablony: Pavel Satrapa: http://www.nti.tul.cz/~satrapa/vyuka/latex-tul/
+
+% Autor komentářů, jejich překladů do EN, nastavení BibLaTeXu a aplikace ČSN ISO 690: Jan Koprnický
+% http://www.fm.tul.cz/personal/jan.koprnicky
+
+% ENGLISH EXPLANATION
+% \documentclass[FM,Dis,EN,fonts,bw]{tulthesis} % black and white typing, dissertation thesis at FM, written in English with using of TUL Mono font
+% this document uses packages specific for XeLaTeX and it is possible to
+% compile it by XeLaTeX only, if you haven't installed used (commercial) fonts
+% change them or erase commands \set...font in following rows
+% settings: FM (faculty: FS, FT, FP, EF, FA, FM, FZS a CXI), Dis (type of thesis: BP, DP, Teze, Autoref, Hab, SP, Proj), EN (written in English language), fonts (activation of TUL fonts), bw (black and white)
+
+% Autor of the template tulthesis: Pavel Satrapa: http://www.nti.tul.cz/~satrapa/vyuka/latex-tul/
+
+% Autor of several comments and their translation into English, BibLaTeX settings and CSN ISO 960 citation standard setting: Jan Koprnický
+% http://www.fm.tul.cz/personal/jan.koprnicky
+
+% poslední změna / last modification 19. 9. 2022
+
+\newcommand{\verze}{2.0}
+
+% vlastní příkazy
+\newcommand{\ESPfullname}{ESP-WROOM-32}
+\newcommand{\STMfullname}{STM32F746NG}
+
+% extra balíčky
+\usepackage{numprint}
+\usepackage{hyperref}
+
+\usepackage{polyglossia}
+\setdefaultlanguage{czech} % comment when English is preferred
+%\setdefaultlanguage{english} % comment when Czech is preferred
+
+
+\usepackage{makeidx}
+\makeindex
+
+\usepackage{xunicode}
+\usepackage{xltxtra}
+
+% příkazy specifické pro tento dokument / specific commands for this document
+\newcommand{\argument}[1]{{\ttfamily\color{\tulcolor}#1}}
+\newcommand{\argumentindex}[1]{\argument{#1}\index{#1}}
+\newcommand{\prostredi}[1]{\argumentindex{#1}}
+\newcommand{\prikazneindex}[1]{\argument{\textbackslash #1}}
+\newcommand{\prikaz}[1]{\prikazneindex{#1}\index{#1@\textbackslash #1}}
+\newenvironment{myquote}{\begin{list}{}{\setlength\leftmargin\parindent}\item[]}{\end{list}}
+\newenvironment{listing}{\begin{myquote}\color{\tulcolor}}{\end{myquote}}
+\sloppy
+
+% deklarace pro titulní stránku / title page declaration
+\TULtitle{Možnosti využití mikrokontroleru řady STM32F v součinnosti s wifi modulem ESP32}{}
+\TULauthor{Daniel Kňourek}
+
+% pro bakalářské, diplomové a disertační práce / for bachelor, master theses and dissertation
+\TULprogramme{B0613A140005AI}{Aplikovaná informatika}{Applied informatics} %TODO check if correct
+\TULbranch{B0613A140005}{Informační technologie}{Information technology}
+%\TULbranch{1802T008}{Nějaký jiný obor}{Some other branch}
+% https://www.fm.tul.cz/personal/miroslav.holada
+\TULsupervisor{Ing. Miroslav Holada, Ph.D.}
+%\TULconsultant{doc. RNDr. Pavel Satrapa, Ph.D.}
+%\TULconsultant{doc. RNDr. Druhý Konzultant, Ph.D.}
+%\TULconsultant{doc. RNDr. Třetí Konzultant, Ph.D.}
+\TULyear{2025}
+
+% pro habilitační práce / habilitation thesis
+%\TULbranch{}{Technická kybernetika}{Technical cybernetics}
+%\TULyear{2022}
+
+% Použití bibLateXu, pracuje s ISO stylem
+% BibLaTeX settings, works with ISO style
+\usepackage[
+    backend=biber
+    % ,style=iso-authoryear % styl vyžaduje FZS TUL , místo příkazu \cite{} je potřeba využít \parencite{} (sazba kulatých závorek) / style required by FZS TUL use \parencite{} instead of \cite{}
+    ,style=iso-numeric
+    %,style=numeric
+    %,sortlocale=cs_CZ
+    ,autolang=other
+    ,bibencoding=UTF8
+    %,urldate=edtf
+    ,maxcitenames=2 %maximum v textu citovaných jmen
+    ,maxbibnames=3 %maximum v seznamu vyjmenovaných autorů
+    ]{biblatex}
+\addbibresource{refTULTHESIS.bib}% vložení seznamu literárních zdrojů v bib formátu / input of references in bib format
+
+% Úprava iso-numeric.bbx v souladu s požadavky TUL hranaté závorky v číslovaném seznamu / Modification of iso-numeric.bbx in accordance with TUL requirements of square brackets in a numbered list
+\DeclareFieldFormat{labelnumberwidth}{\mkbibbrackets{#1}}
+
+% Formátování podle pokynů FZS, při využití stylu iso-authoryear, čárka mezi jmény a poslední jméno se spojkou a / special requirements of FZS TUL
+\DeclareDelimFormat{multinamedelim}{\addcomma\space}
+
+\DeclareDelimFormat{finalnamedelim}{%
+  \ifnumgreater{\value{liststop}}{2}{\finalandcomma}{}%
+  \addspace\bibstring{and}\space}
+
+\DeclareNameAlias{author}{family-given/given-family}
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{csquotes} %užití biblatexu hlásí warnings, důvodem může být použití českých uvozovek v citacích! / solving of problems with Czech quotations
+\urlstyle{same} %sazba url odkazů stejným fontem jako ostatní text, řešení problémů v zalamování hypertextových odkazů v citacích / url in references setting into the same form as text
+
+
+\begin{document}
+
+\ThesisStart{male}
+%\ThesisStart{zadani-a-prohlaseni.pdf}
+
+% \begin{abstractCZ}
+% Tato zpráva popisuje třídu \texttt{tulthesis} pro sazbu absolventských prací
+% Technické univerzity v~Liberci pomocí typografického systému \LaTeX.
+% \end{abstractCZ}
+
+% \begin{keywordsCZ}
+%     % TODO
+%     \LaTeX, třída, TUL
+% \end{keywordsCZ}
+
+% \vspace{2cm}
+
+% \begin{abstractEN}
+%     % TODO
+%     This report describes the \texttt{tulthesis} package for Technical university of
+%     Liberec thesis typesetting using the \LaTeX\ typographic system.
+% \end{abstractEN}
+
+% \begin{keywordsEN}
+%     \LaTeX, class, TUL
+% \end{keywordsEN}
+
+% \clearpage
+
+% \begin{acknowledgement}
+% Rád bych poděkoval všem, kteří přispěli ke vzniku tohoto dílka.
+% \end{acknowledgement}
+
+\tableofcontents
+
+\clearpage
+
+% \begin{abbrList}
+%     % TODO
+%     \textbf{TUL} & Technická univerzita v~Liberci \\
+%     \textbf{FM} & Fakulta mechatroniky, informatiky a mezioborových studií
+%     Technické univerzity v~Liberci
+% \end{abbrList}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% DOCUMENT START %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Úvod}
+Tato část dokumentu udává jeho rozsah a přehled jeho obsahu. Také slouží pro definování jeho účelu a záměru.
+
+
+% TODO cite file?
+\nocite{*}
+% Aplikace biblatexu a stylu citování ČSN ISO 690,
+% soubor refPsaniTextuNEW.bib je vložen v hlavičce dokumentů
+
+% \printbibliography[title={Použitá literatura}] % sazba seznamu citací
+% \printbibliography[title={References}]
+% \addcontentsline{toc}{chapter}{Použitá literatura} % vložení nadpisu do obsahu
+% \addcontentsline{toc}{chapter}{References}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\renewcommand{\indexname}{Přehled příkazů, prostředí a voleb}
+\printindex
+
+% \appendix % začátek příloh / beginning of appendiecies
+% \chapter{Přílohy}
+% \section{Obsah vloženého balíku do IS/STAG TUL} % příklad přílohy
+% \begin{itemize}
+%     \item Text práce
+%     \item Obrazová dokumentace
+%     \item Zdrojové kódy
+%     \item \dots
+% \end{itemize}
+
+% \section{Velké tabulky a obrázky} % příklad přílohy
+
+\end{document}

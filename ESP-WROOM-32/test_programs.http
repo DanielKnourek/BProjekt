@@ -1,0 +1,27 @@
+@host = 192.168.137.194
+@port = 80
+@target = http://{{host}}:{{port}}
+
+###
+GET {{target}}/api/led?LED1=1
+
+###
+GET {{target}}/api/led?LED1=0
+
+###
+GET {{target}}/api/led?LED2=1
+
+###
+GET {{target}}/api/led?LED2=0
+
+###
+GET {{target}}/api/led?PROGRAM3=1
+
+###
+GET {{target}}/api/led?PROGRAM3=0
+
+###
+GET {{target}}/api/program1?en=1
+
+###
+GET {{target}}/api/program1?en=0
