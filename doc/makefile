@@ -17,7 +17,7 @@ view:
 		${filename}; done
 
 clean:
-	rm -f aux/${filename}.{ps,pdf,log,aux,out,dvi,bbl,blg,snm,toc,nav,fdb*,fls,ind,idx,bcf,ilg}
+	rm -f output/${filename}.{ps,pdf,log,aux,out,dvi,bbl,blg,snm,toc,nav,fdb*,fls,ind,idx,bcf,ilg}
 
 .PHONY: build
 build: 

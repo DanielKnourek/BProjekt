@@ -1,3 +1,3 @@
 # ignore TeX build files and logs
-aux/*
-!aux/*.pdf
+output/*
+!output/*.pdf

@@ -1,10 +1,10 @@
 # Settings
 $xdvipdfmx = "xdvipdfmx -z 6 -i dvipdfmx-unsafe.cfg -o %D %O %S";
 $pdf_mode = 5;
-$out_dir="aux";
+$out_dir="output";
 
 $ENV{'TTFONTS'}='assets/fonts//:' . $ENV{'TTFONTS'}; 
-# $jobname="aux/%A";
+# $jobname="output/%A";
 
 # Workaround to allow pstricks transparency
 $dvipdf = "dvipdf -dNOSAFER -dALLOWPSTRANSPARENCY %O %S %D";
