@@ -17,22 +17,22 @@ Systém se skládá ze tří hlavních vrstev propojených optimalizovaným komu
 
 ```text
 ┌───────────────────────────────────────┐
-│     Webová aplikace (React + Vite)    │
+│   Webová aplikace (React + Tailwind)  │
 │   Dashboard s grafy a ovládáním v RT  │
 └──────────────────────┬────────────────┘
                    ▲   │
                    │   │  REST API / WebSockets (Wi-Fi)
                    │   ▼
 ┌──────────────────┴────────────────────┐
-│       ESP32 (ESP-IDF, C server)       │
+│       ESP32 (ESP-IDF, FreeRTOS)       │
 │  Asynchronní síťová brána a servery   │
 └──────────────────────┬────────────────┘
                    ▲   │
-                   │   │  UART (Protocol Buffers - nanopb)
+                   │   │  UART (Protocol Buffers)
                    │   ▼
 ┌──────────────────┴────────────────────┐      ┌─────────────────────────────┐
 │       STM32F746G (Core C, HAL)        ├─────►│ Regulovaná analogová smyčka │
-│  Nízkoúrovňové řízení v reálném čase  │◄─────┤  (Analogová zpětná vazba)   │
+│  Nízkoúrovňové řízení v reálném čase  │◄─────┤ (PWM out, ADC in, RC filtr) │
 └───────────────────────────────────────┘      └─────────────────────────────┘
 ```
 
